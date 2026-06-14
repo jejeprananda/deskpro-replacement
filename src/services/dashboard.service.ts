@@ -5,11 +5,11 @@ import {
 } from "@/services/agent-directory.service";
 import { DeskproClient } from "@/lib/deskpro-client";
 import {
-  DATE_USER_WAITING_BUCKET_ORDER,
   DATE_USER_WAITING_FILTER_ID,
   formatBucketLabel,
   getBucketFql,
   isDateUserWaitingBucket,
+  pickDefaultBucketWithTickets,
   sortDateUserWaitingBuckets,
 } from "@/lib/ticket-filter-labels";
 import { DeskproTimeoutError, UnauthorizedError } from "@/lib/errors";
@@ -89,22 +89,6 @@ function mapSubCounts(
     value: item.value,
     count: item.count,
   }));
-}
-
-function pickRecentTicketsBucket(
-  buckets: { value: string; count: number }[],
-): string {
-  const countsByValue = new Map(
-    buckets.map((bucket) => [bucket.value, bucket.count]),
-  );
-
-  for (const bucket of DATE_USER_WAITING_BUCKET_ORDER) {
-    if ((countsByValue.get(bucket) ?? 0) > 0) {
-      return bucket;
-    }
-  }
-
-  return "1_to_2_days";
 }
 
 function buildTicketFqlGroupedPayload(params: {
@@ -192,7 +176,7 @@ export async function fetchDashboard(): Promise<DashboardResponse> {
     );
 
     const slaBuckets = mapSubCounts(slaSeverity.subCounts);
-    const recentTicketsBucket = pickRecentTicketsBucket(
+    const recentTicketsBucket = pickDefaultBucketWithTickets(
       mapSubCounts(dateUserWaiting.subCounts),
     );
     const recentTickets = await fetchRecentTickets(recentTicketsBucket);

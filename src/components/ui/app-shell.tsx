@@ -41,11 +41,11 @@ export function AppShell({
   const toggleSidebar = useUiStore((state) => state.toggleSidebar);
 
   return (
-    <div className="flex min-h-full flex-1 bg-background">
+    <div className="flex h-dvh overflow-hidden bg-background">
       <aside
         className={`${
           sidebarOpen ? "w-64" : "w-16"
-        } flex shrink-0 flex-col border-r border-border bg-surface transition-all`}
+        } flex h-full shrink-0 flex-col border-r border-border bg-surface transition-all`}
       >
         <div className="flex items-center justify-between border-b border-border p-4">
           <BrandLogo compact={!sidebarOpen} />
@@ -94,13 +94,13 @@ export function AppShell({
         {sidebarOpen ? <SidebarUserProfile /> : null}
       </aside>
 
-      <main className="flex min-w-0 flex-1 flex-col">
+      <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         <PageTopBar
           searchValue={searchValue}
           onSearchChange={onSearchChange}
           searchPlaceholder={searchPlaceholder}
         />
-        <div className="flex-1 p-6">{children}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto p-6">{children}</div>
       </main>
     </div>
   );

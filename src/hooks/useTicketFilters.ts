@@ -1,8 +1,11 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { DATE_USER_WAITING_FILTER_ID } from "@/lib/ticket-filter-labels";
+import {
+  DATE_USER_WAITING_FILTER_ID,
+  pickDefaultBucketWithTickets,
+} from "@/lib/ticket-filter-labels";
 import { useTicketFilterCounts } from "@/hooks/useTicketFilterCounts";
 
 const DEFAULT_LIMIT = 10;
@@ -158,6 +161,25 @@ export function useTicketFilters() {
     },
     [updateSearchParams],
   );
+
+  useEffect(() => {
+    if (pathname !== "/tickets" || bucket || !filterCountsQuery.isSuccess) {
+      return;
+    }
+
+    const defaultBucket = pickDefaultBucketWithTickets(buckets);
+    updateSearchParams({
+      filterId: DATE_USER_WAITING_FILTER_ID,
+      bucket: defaultBucket,
+      offset: "0",
+    });
+  }, [
+    bucket,
+    buckets,
+    filterCountsQuery.isSuccess,
+    pathname,
+    updateSearchParams,
+  ]);
 
   return {
     filterId,

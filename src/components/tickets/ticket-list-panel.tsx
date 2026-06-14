@@ -35,15 +35,15 @@ function formatDate(value: string | null): string {
 
 function SlaBadge({ status }: { status: TicketListItem["slaStatus"] }) {
   if (!status) {
-    return <span className="text-zinc-400">-</span>;
+    return <span className="text-muted">-</span>;
   }
 
   return (
     <span
       className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
         status === "fail"
-          ? "bg-red-100 text-red-700"
-          : "bg-emerald-100 text-emerald-700"
+          ? "bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-300"
+          : "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
       }`}
     >
       {status}
@@ -75,16 +75,16 @@ export function TicketListPanel({
   const selectionEnabled = selectedIds != null && onToggleTicket != null;
   if (!selectedBucketLabel) {
     return (
-      <div className="flex h-full min-h-80 items-center justify-center rounded-xl border border-dashed border-zinc-200 bg-white p-6">
-        <p className="text-sm text-zinc-500">Pilih filter durasi di sidebar.</p>
+      <div className="flex h-full min-h-80 items-center justify-center rounded-xl border border-dashed border-border bg-surface p-6">
+        <p className="text-sm text-muted">Pilih filter durasi di sidebar.</p>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-80 flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
+    <div className="flex min-h-80 flex-col overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
       {errorMessage ? (
-        <div className="border-b border-zinc-200 p-4 text-sm text-red-600">
+        <div className="border-b border-border p-4 text-sm text-red-600">
           {errorMessage}
         </div>
       ) : null}
@@ -94,7 +94,7 @@ export function TicketListPanel({
           {Array.from({ length: 6 }).map((_, index) => (
             <div
               key={index}
-              className="h-16 animate-pulse rounded-md bg-zinc-100"
+              className="h-16 animate-pulse rounded-md bg-surface-muted"
             />
           ))}
         </div>
@@ -102,7 +102,7 @@ export function TicketListPanel({
 
       {!isFetching && tickets.length === 0 ? (
         <div className="flex flex-1 items-center justify-center p-6">
-          <p className="text-sm text-zinc-500">No tickets in this filter.</p>
+          <p className="text-sm text-muted">No tickets in this filter.</p>
         </div>
       ) : null}
 
@@ -110,7 +110,7 @@ export function TicketListPanel({
         <>
           <div className="overflow-x-auto">
             <table className="min-w-full text-left text-sm">
-              <thead className="border-b border-zinc-200 bg-zinc-50 text-[11px] uppercase tracking-wide text-zinc-500">
+              <thead className="border-b border-border bg-surface-muted text-[11px] uppercase tracking-wide text-muted">
                 <tr>
                   {selectionEnabled ? (
                     <th className="w-10 px-3 py-3">
@@ -124,7 +124,7 @@ export function TicketListPanel({
                         }}
                         onChange={() => onToggleAll?.(ticketIds)}
                         aria-label="Select all tickets"
-                        className="h-4 w-4 rounded border-zinc-300 text-blue-600 focus:ring-blue-500"
+                        className="h-4 w-4 rounded border-border text-blue-600 focus:ring-blue-500"
                       />
                     </th>
                   ) : null}
@@ -149,7 +149,7 @@ export function TicketListPanel({
                   return (
                     <tr
                       key={ticket.id}
-                      className={`border-b border-zinc-100 last:border-b-0 hover:bg-zinc-50/80 ${
+                      className={`border-b border-border last:border-b-0 hover:bg-surface-muted/80 ${
                         isSelected ? "bg-blue-50/40" : ""
                       }`}
                     >
@@ -160,14 +160,14 @@ export function TicketListPanel({
                             checked={isSelected}
                             onChange={() => onToggleTicket?.(ticket.id)}
                             aria-label={`Select ticket ${ticket.ref}`}
-                            className="h-4 w-4 rounded border-zinc-300 text-blue-600 focus:ring-blue-500"
+                            className="h-4 w-4 rounded border-border text-blue-600 focus:ring-blue-500"
                           />
                         </td>
                       ) : null}
                       <td className="px-4 py-4 align-top">
                         <Link
                           href={href}
-                          className="font-semibold text-zinc-900 hover:underline"
+                          className="font-semibold text-foreground hover:underline"
                         >
                           {ticket.ref}
                         </Link>
@@ -175,13 +175,13 @@ export function TicketListPanel({
                       <td className="max-w-md px-4 py-4 align-top">
                         <Link
                           href={href}
-                          className="line-clamp-2 block font-medium text-zinc-900 hover:underline"
+                          className="line-clamp-2 block font-medium text-foreground hover:underline"
                         >
                           {ticket.subject}
                         </Link>
                         {primaryLabel ? (
                           <span
-                            className="mt-2 inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium text-zinc-700"
+                            className="mt-2 inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium text-foreground"
                             style={{
                               backgroundColor: `${primaryLabel.hex}33`,
                             }}
@@ -190,14 +190,14 @@ export function TicketListPanel({
                           </span>
                         ) : null}
                       </td>
-                      <td className="px-4 py-4 align-top text-zinc-700">
+                      <td className="px-4 py-4 align-top text-foreground">
                         {ticket.person ? (
                           <div>
-                            <p className="font-medium text-zinc-900">
+                            <p className="font-medium text-foreground">
                               {ticket.person.name}
                             </p>
                             {ticket.person.email ? (
-                              <p className="text-xs text-zinc-500">
+                              <p className="text-xs text-muted">
                                 {ticket.person.email}
                               </p>
                             ) : null}
@@ -206,13 +206,13 @@ export function TicketListPanel({
                           "-"
                         )}
                       </td>
-                      <td className="px-4 py-4 align-top text-zinc-700">
+                      <td className="px-4 py-4 align-top text-foreground">
                         {ticket.assignedAgent ?? "-"}
                       </td>
                       <td className="px-4 py-4 align-top">
                         <StatusBadge status={ticket.status} />
                       </td>
-                      <td className="px-4 py-4 align-top text-zinc-700">
+                      <td className="px-4 py-4 align-top text-foreground">
                         {formatDate(ticket.dateUserWaiting)}
                       </td>
                       <td className="px-4 py-4 align-top">

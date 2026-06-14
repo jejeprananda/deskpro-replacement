@@ -72,7 +72,7 @@ function buildRecentTicketHref(ticket: TicketListItem, bucket: string): string {
 function SlaBadge({ status }: { status: TicketListItem["slaStatus"] }) {
   if (!status) {
     return (
-      <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-500">
+      <span className="rounded-full bg-surface-muted px-2 py-0.5 text-xs text-muted">
         -
       </span>
     );
@@ -82,8 +82,8 @@ function SlaBadge({ status }: { status: TicketListItem["slaStatus"] }) {
     <span
       className={`rounded-full px-2 py-0.5 text-xs font-medium ${
         status === "fail"
-          ? "bg-red-100 text-red-700"
-          : "bg-emerald-100 text-emerald-700"
+          ? "bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-300"
+          : "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
       }`}
     >
       {status === "fail" ? "SLA Failed" : "Within SLA"}
@@ -98,11 +98,11 @@ export function RecentTicketsList({
   isLoading = false,
 }: RecentTicketsListProps) {
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+    <div className="rounded-xl border border-border bg-surface p-5 shadow-sm">
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-sm font-semibold text-zinc-900">Recent Tickets</h2>
-          <p className="mt-1 text-xs text-zinc-500">
+          <h2 className="text-sm font-semibold text-foreground">Recent Tickets</h2>
+          <p className="mt-1 text-xs text-muted">
             From tickets waiting {bucketLabel.toLowerCase()}
           </p>
         </div>
@@ -115,28 +115,28 @@ export function RecentTicketsList({
       </div>
 
       {isLoading ? (
-        <div className="py-8 text-center text-sm text-zinc-400">Loading...</div>
+        <div className="py-8 text-center text-sm text-muted">Loading...</div>
       ) : tickets.length === 0 ? (
-        <div className="py-8 text-center text-sm text-zinc-400">
+        <div className="py-8 text-center text-sm text-muted">
           No recent tickets
         </div>
       ) : (
-        <ul className="divide-y divide-zinc-100">
+        <ul className="divide-y divide-border">
           {tickets.map((ticket) => (
             <li key={ticket.id}>
               <Link
                 href={buildRecentTicketHref(ticket, bucket)}
-                className="flex items-start justify-between gap-3 py-3 transition-colors hover:bg-zinc-50"
+                className="flex items-start justify-between gap-3 py-3 transition-colors hover:bg-surface-muted"
               >
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-zinc-900">{ticket.ref}</p>
-                  <p className="mt-0.5 line-clamp-1 text-sm text-zinc-600">
+                  <p className="text-sm font-medium text-foreground">{ticket.ref}</p>
+                  <p className="mt-0.5 line-clamp-1 text-sm text-muted">
                     {ticket.subject}
                   </p>
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-1">
                   <SlaBadge status={ticket.slaStatus} />
-                  <span className="text-xs text-zinc-400">
+                  <span className="text-xs text-muted">
                     {formatRelativeTime(ticket.dateCreated)}
                   </span>
                 </div>

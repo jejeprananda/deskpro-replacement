@@ -115,8 +115,8 @@ export function getTicketDetailFieldIcon(
   return (
     TICKET_DETAIL_FIELD_ICONS[fieldKey as TicketDetailVisibleFieldKey] ?? {
       icon: FileText,
-      containerClassName: "bg-zinc-100",
-      iconClassName: "text-zinc-600",
+      containerClassName: "bg-surface-muted",
+      iconClassName: "text-muted",
     }
   );
 }

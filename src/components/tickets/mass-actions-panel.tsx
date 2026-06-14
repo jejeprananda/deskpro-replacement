@@ -55,8 +55,8 @@ function MassActionStepRow({
     <div
       className={`rounded-lg border p-3 transition-colors ${
         isConfigured
-          ? "border-blue-200 bg-blue-50/70 shadow-sm"
-          : "border-dashed border-amber-300 bg-amber-50/50"
+          ? "border-blue-200 bg-blue-50/70 shadow-sm dark:border-blue-900/50 dark:bg-blue-950/30"
+          : "border-dashed border-amber-300 bg-amber-50/50 dark:border-amber-700/50 dark:bg-amber-950/20"
       }`}
     >
       <div className="mb-3 flex items-center justify-between gap-2">
@@ -71,12 +71,14 @@ function MassActionStepRow({
             {index + 1}
           </span>
           <div className="min-w-0">
-            <span className="block text-sm font-medium text-zinc-900">
+            <span className="block text-sm font-medium text-foreground">
               {getMassActionStepLabel(step)}
             </span>
             <span
               className={`text-xs font-medium ${
-                isConfigured ? "text-blue-700" : "text-amber-700"
+                isConfigured
+                  ? "text-blue-700 dark:text-blue-300"
+                  : "text-amber-700 dark:text-amber-300"
               }`}
             >
               {isConfigured ? "Configured" : "Select a value"}
@@ -86,7 +88,7 @@ function MassActionStepRow({
         <button
           type="button"
           onClick={onRemove}
-          className="rounded-md p-1.5 text-zinc-400 hover:bg-zinc-100 hover:text-red-600"
+          className="rounded-md p-1.5 text-muted hover:bg-surface-muted hover:text-red-600"
           aria-label={`Remove ${getMassActionStepLabel(step)}`}
         >
           <Trash2 className="h-4 w-4" />
@@ -186,20 +188,20 @@ export function MassActionsPanel({ selection }: MassActionsPanelProps) {
   const usedTypes = steps.map((step) => step.type);
 
   return (
-    <aside className="flex w-80 shrink-0 flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
-      <div className="flex items-center justify-between border-b border-zinc-200 px-4 py-3">
-        <h2 className="text-base font-semibold text-zinc-900">Mass Actions</h2>
+    <aside className="flex w-80 shrink-0 flex-col overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
+      <div className="flex items-center justify-between border-b border-border px-4 py-3">
+        <h2 className="text-base font-semibold text-foreground">Mass Actions</h2>
         <button
           type="button"
           onClick={clearSelection}
-          className="rounded-md border border-zinc-200 px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50"
+          className="rounded-md border border-border px-3 py-1.5 text-sm text-foreground hover:bg-surface-muted"
         >
           Cancel
         </button>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto p-4">
-        <p className="mb-4 text-xs text-zinc-500">
+        <p className="mb-4 text-xs text-muted">
           {selectedTicketIds.size} ticket
           {selectedTicketIds.size === 1 ? "" : "s"} selected
         </p>
@@ -224,7 +226,7 @@ export function MassActionsPanel({ selection }: MassActionsPanelProps) {
         </div>
       </div>
 
-      <div className="border-t border-zinc-200 p-4">
+      <div className="border-t border-border p-4">
         <button
           type="button"
           disabled={!canApply || isPending}

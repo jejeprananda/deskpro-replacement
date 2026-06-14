@@ -23,7 +23,7 @@ export function TicketFilterSidebar({
         {Array.from({ length: 9 }).map((_, index) => (
           <div
             key={index}
-            className="h-9 animate-pulse rounded-md bg-zinc-100"
+            className="h-9 animate-pulse rounded-md bg-surface-muted"
           />
         ))}
       </div>
@@ -36,7 +36,7 @@ export function TicketFilterSidebar({
 
   if (buckets.length === 0) {
     return (
-      <p className="text-sm text-zinc-500">No duration filters available.</p>
+      <p className="text-sm text-muted">No duration filters available.</p>
     );
   }
 
@@ -53,7 +53,7 @@ export function TicketFilterSidebar({
               className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors ${
                 isSelected
                   ? "bg-blue-50 font-semibold text-blue-700"
-                  : "text-zinc-700 hover:bg-slate-100"
+                  : "text-foreground hover:bg-surface-muted"
               }`}
             >
               <span>{bucket.label}</span>

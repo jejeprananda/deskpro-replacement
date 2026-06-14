@@ -355,6 +355,52 @@ export function buildMessageAttachmentUrl(
   return `/api/deskpro/messages/${encodeURIComponent(messageId)}/attachment?${params.toString()}`;
 }
 
+function parseFilesProxyUrl(src: string): DeskproAttachmentLink | null {
+  if (!src.includes("/api/deskpro/files")) {
+    return null;
+  }
+
+  try {
+    const url = new URL(src, "http://localhost");
+    const fileKey = url.searchParams.get("key");
+    const filename = url.searchParams.get("name");
+
+    if (!fileKey || !filename) {
+      return null;
+    }
+
+    return parseDeskproFileLink(fileKey, filename);
+  } catch {
+    return null;
+  }
+}
+
+export function resolveInlineImageBffUrl(
+  messageId: string,
+  attachments: TicketMessageAttachment[],
+  src: string,
+): string | null {
+  if (src.startsWith("/api/deskpro/messages/")) {
+    return src;
+  }
+
+  const parsed = parseDeskproFileUrl(src) ?? parseFilesProxyUrl(src);
+
+  if (!parsed) {
+    return null;
+  }
+
+  const hasAttachment = attachments.some(
+    (attachment) => attachment.filename === parsed.filename,
+  );
+
+  if (hasAttachment) {
+    return buildMessageAttachmentUrl(messageId, parsed.filename, "inline");
+  }
+
+  return buildAttachmentProxyUrl(parsed.fileKey, parsed.filename);
+}
+
 export function getAttachmentDisposition(
   action: AttachmentAction,
 ): "inline" | "attachment" {

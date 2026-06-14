@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { TicketAttachmentImagePreview } from "@/components/tickets/ticket-attachment-image-preview";
+import { PaperclipIcon } from "@/components/ui/attachment-icons";
 import { BFF_FETCH_OPTIONS } from "@/lib/bff-fetch";
 import {
   buildMessageAttachmentUrl,
@@ -46,24 +47,6 @@ function getStatusMessage(
     default:
       return null;
   }
-}
-
-function PaperclipIcon() {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 20 20"
-      fill="currentColor"
-      className="h-3.5 w-3.5 shrink-0 text-zinc-500"
-      aria-hidden="true"
-    >
-      <path
-        fillRule="evenodd"
-        d="M15.621 4.379a3 3 0 0 0-4.242 0l-7 7a3 3 0 0 0 4.241 4.243h.001l.497-.5a.75.75 0 0 1 1.064 1.057l-.498.501-.002.002a4.5 4.5 0 0 1-6.364-6.364l7-7a4.5 4.5 0 0 1 6.368 6.36l-3.455 3.553A2.625 2.625 0 1 1 9.52 9.52l3.45-3.451a.75.75 0 1 1 1.061 1.06l-3.45 3.451a1.125 1.125 0 0 0 1.587 1.595l3.454-3.553a3 3 0 0 0 0-4.242Z"
-        clipRule="evenodd"
-      />
-    </svg>
-  );
 }
 
 export function TicketAttachmentAction({
@@ -210,25 +193,25 @@ export function TicketAttachmentAction({
           disabled={isBusy}
           aria-busy={isBusy}
           aria-live="polite"
-          className="inline-flex max-w-full items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-2.5 py-1 text-xs text-zinc-700 transition-opacity hover:bg-zinc-50 disabled:cursor-wait disabled:opacity-70"
+          className="inline-flex max-w-full items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 py-1 text-xs text-foreground transition-opacity hover:bg-surface-muted disabled:cursor-wait disabled:opacity-70"
         >
           {isBusy ? (
             <span
-              className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-zinc-400 border-r-transparent"
+              className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-border border-r-transparent"
               aria-hidden="true"
             />
           ) : (
-            <PaperclipIcon />
+            <PaperclipIcon className="h-3.5 w-3.5 shrink-0 text-muted" />
           )}
           <span className="truncate max-w-[200px]">{attachment.filename}</span>
-          <span className="shrink-0 text-zinc-500">
+          <span className="shrink-0 text-muted">
             {formatFileSize(attachment.filesize)}
           </span>
         </button>
         {statusMessage ? (
           <p
             className={`mt-1 text-xs ${
-              state === "error" ? "text-red-600" : "text-zinc-600"
+              state === "error" ? "text-red-600" : "text-muted"
             }`}
           >
             {statusMessage}

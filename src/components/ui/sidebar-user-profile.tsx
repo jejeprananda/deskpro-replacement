@@ -17,11 +17,11 @@ export function SidebarUserProfile() {
   }
 
   return (
-    <div className="relative border-t border-zinc-200 p-3">
+    <div className="relative border-t border-border p-3">
       <button
         type="button"
         onClick={() => setMenuOpen((value) => !value)}
-        className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left hover:bg-zinc-50"
+        className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left hover:bg-surface-muted"
       >
         {user?.avatar ? (
           <Image
@@ -33,27 +33,27 @@ export function SidebarUserProfile() {
             unoptimized
           />
         ) : (
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-700">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-700 dark:bg-blue-950/50 dark:text-blue-300">
             {displayName.charAt(0).toUpperCase()}
           </div>
         )}
 
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium text-zinc-900">
+          <p className="truncate text-sm font-medium text-foreground">
             {displayName}
           </p>
-          <p className="truncate text-xs text-zinc-500">Agent</p>
+          <p className="truncate text-xs text-muted">Agent</p>
         </div>
 
-        <ChevronDown className="h-4 w-4 shrink-0 text-zinc-400" />
+        <ChevronDown className="h-4 w-4 shrink-0 text-muted" />
       </button>
 
       {menuOpen ? (
-        <div className="absolute bottom-full left-3 right-3 mb-1 rounded-lg border border-zinc-200 bg-white py-1 shadow-lg">
+        <div className="absolute bottom-full left-3 right-3 mb-1 rounded-lg border border-border bg-surface py-1 shadow-lg">
           <button
             type="button"
             onClick={handleLogout}
-            className="flex w-full items-center gap-2 px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50"
+            className="flex w-full items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-surface-muted"
           >
             <LogOut className="h-4 w-4" />
             Logout

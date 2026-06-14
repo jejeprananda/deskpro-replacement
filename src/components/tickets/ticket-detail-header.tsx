@@ -42,7 +42,7 @@ export function TicketDetailHeader({
           key: "priority",
           label: "Priority",
           content: (
-            <span className="inline-flex items-center gap-1.5 text-sm font-medium text-zinc-800">
+            <span className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground">
               <span className="h-2 w-2 rounded-full bg-emerald-500" />
               {headerMeta.priorityLabel}
             </span>
@@ -54,7 +54,7 @@ export function TicketDetailHeader({
           key: "created",
           label: "Created",
           content: (
-            <span className="text-sm font-medium text-zinc-800">
+            <span className="text-sm font-medium text-foreground">
               {formatTicketDetailDate(headerMeta.dateCreated)}
             </span>
           ),
@@ -65,7 +65,7 @@ export function TicketDetailHeader({
           key: "requester",
           label: "Requester",
           content: (
-            <span className="text-sm font-medium text-zinc-800">
+            <span className="text-sm font-medium text-foreground">
               {headerMeta.requester}
             </span>
           ),
@@ -76,7 +76,7 @@ export function TicketDetailHeader({
           key: "assignedAgent",
           label: "Assigned Agent",
           content: (
-            <span className="text-sm font-medium text-zinc-800">
+            <span className="text-sm font-medium text-foreground">
               {headerMeta.assignedAgent}
             </span>
           ),
@@ -89,7 +89,7 @@ export function TicketDetailHeader({
       <div className="flex items-center justify-between gap-3">
         <Link
           href={backHref}
-          className="text-sm text-zinc-600 hover:text-zinc-900 hover:underline"
+          className="text-sm text-muted hover:text-foreground hover:underline"
         >
           ← Back to tickets
         </Link>
@@ -104,7 +104,7 @@ export function TicketDetailHeader({
         </button>
       </div>
 
-      <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+      <section className="rounded-xl border border-border bg-surface p-5 shadow-sm">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
           <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-violet-100">
             <FileText className="h-6 w-6 text-violet-600" />
@@ -117,29 +117,29 @@ export function TicketDetailHeader({
               </span>
             ) : null}
 
-            <h1 className="mt-2 text-xl font-semibold text-zinc-900">
+            <h1 className="mt-2 text-xl font-semibold text-foreground">
               {headerMeta.ref}
             </h1>
-            <p className="mt-1 text-sm text-zinc-600">{headerMeta.subject}</p>
+            <p className="mt-1 text-sm text-muted">{headerMeta.subject}</p>
           </div>
         </div>
 
         {metaItems.length > 0 ? (
-          <div className="mt-5 grid gap-4 border-t border-zinc-100 pt-5 sm:grid-cols-2 xl:grid-cols-5">
+          <div className="mt-5 grid gap-4 border-t border-border pt-5 sm:grid-cols-2 xl:grid-cols-5">
             {metaItems.map((item) => (
               <div key={item.key} className="min-w-0">
-                <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+                <p className="text-xs font-medium uppercase tracking-wide text-muted">
                   {item.label}
                 </p>
                 <div className="mt-1.5 flex items-center gap-1.5">
                   {item.key === "created" ? (
-                    <Calendar className="h-4 w-4 shrink-0 text-zinc-400" />
+                    <Calendar className="h-4 w-4 shrink-0 text-muted" />
                   ) : null}
                   {item.key === "requester" ? (
-                    <User className="h-4 w-4 shrink-0 text-zinc-400" />
+                    <User className="h-4 w-4 shrink-0 text-muted" />
                   ) : null}
                   {item.key === "assignedAgent" ? (
-                    <UserPlus className="h-4 w-4 shrink-0 text-zinc-400" />
+                    <UserPlus className="h-4 w-4 shrink-0 text-muted" />
                   ) : null}
                   {item.content}
                 </div>
@@ -156,10 +156,10 @@ export function TicketDetailHeaderSkeleton() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <div className="h-4 w-28 animate-pulse rounded bg-zinc-200" />
-        <div className="h-9 w-24 animate-pulse rounded-lg bg-zinc-200" />
+        <div className="h-4 w-28 animate-pulse rounded bg-surface-muted" />
+        <div className="h-9 w-24 animate-pulse rounded-lg bg-surface-muted" />
       </div>
-      <div className="h-40 animate-pulse rounded-xl bg-zinc-100" />
+      <div className="h-40 animate-pulse rounded-xl bg-surface-muted" />
     </div>
   );
 }

@@ -4,10 +4,13 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { TicketSnippetPicker } from "@/components/tickets/ticket-snippet-picker";
+import { PaperclipIcon } from "@/components/ui/attachment-icons";
 import { useSubmitTicketReply } from "@/hooks/useSubmitTicketReply";
 import type { SnippetVariables } from "@/lib/snippet-content";
 import { useToastStore } from "@/stores/toast.store";
 import type { ReplyMessageType, ReplyStatusId } from "@/types/ticket-reply";
+
+const MAX_TEXTAREA_HEIGHT = 320;
 
 const ACCEPTED_IMAGE_TYPES = new Set([
   "image/png",
@@ -130,12 +133,30 @@ export function TicketReplyComposer({
     PendingAttachment[]
   >([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const pendingAttachmentsRef = useRef<PendingAttachment[]>([]);
   const submitReply = useSubmitTicketReply();
+
+  const adjustTextareaHeight = useCallback(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) {
+      return;
+    }
+
+    textarea.style.height = "auto";
+    const nextHeight = Math.min(textarea.scrollHeight, MAX_TEXTAREA_HEIGHT);
+    textarea.style.height = `${nextHeight}px`;
+    textarea.style.overflowY =
+      textarea.scrollHeight > MAX_TEXTAREA_HEIGHT ? "auto" : "hidden";
+  }, []);
 
   useEffect(() => {
     pendingAttachmentsRef.current = pendingAttachments;
   }, [pendingAttachments]);
+
+  useEffect(() => {
+    adjustTextareaHeight();
+  }, [adjustTextareaHeight, replyText]);
 
   const clearPendingAttachments = useCallback(() => {
     for (const attachment of pendingAttachmentsRef.current) {
@@ -210,12 +231,18 @@ export function TicketReplyComposer({
     });
   }, []);
 
-  const handleSnippetSelect = useCallback((plainText: string) => {
-    setReplyText((current) => {
-      const separator = current.trim() ? "\n\n" : "";
-      return current + separator + plainText;
-    });
-  }, []);
+  const handleSnippetSelect = useCallback(
+    (plainText: string) => {
+      setReplyText((current) => {
+        const separator = current.trim() ? "\n\n" : "";
+        return current + separator + plainText;
+      });
+      requestAnimationFrame(() => {
+        adjustTextareaHeight();
+      });
+    },
+    [adjustTextareaHeight],
+  );
 
   const handleSend = useCallback(async () => {
     const message = replyText.trim();
@@ -239,6 +266,9 @@ export function TicketReplyComposer({
       setReplyText("");
       setStatusId("awaiting_agent");
       clearPendingAttachments();
+      requestAnimationFrame(() => {
+        adjustTextareaHeight();
+      });
       showToast(
         messageType === "note"
           ? "Catatan berhasil ditambahkan."
@@ -254,6 +284,7 @@ export function TicketReplyComposer({
       showToast(getErrorMessage(error), "error");
     }
   }, [
+    adjustTextareaHeight,
     clearPendingAttachments,
     listHref,
     messageType,
@@ -279,14 +310,14 @@ export function TicketReplyComposer({
     <div
       id="ticket-reply-composer"
       className={`rounded-xl border shadow-sm ${
-        isNote ? "border-violet-200 bg-violet-50" : "border-zinc-200 bg-white"
+        isNote ? "border-violet-200 bg-violet-50" : "border-border bg-surface"
       }`}
       onDragOver={(event) => event.preventDefault()}
       onDrop={handleDrop}
     >
       <div
         className={`flex items-center gap-1 border-b px-2 pt-2 ${
-          isNote ? "border-violet-200" : "border-zinc-200"
+          isNote ? "border-violet-200" : "border-border"
         }`}
       >
         {MESSAGE_TYPE_TABS.map((tab) => {
@@ -301,66 +332,82 @@ export function TicketReplyComposer({
                 isActive
                   ? isNote
                     ? "bg-violet-100 text-violet-900"
-                    : "bg-white text-zinc-900"
-                  : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
+                    : "bg-surface text-foreground"
+                  : "text-muted hover:bg-surface-muted hover:text-foreground"
               }`}
             >
               {tab.label}
             </button>
           );
         })}
-        <div className="ml-auto pr-2">
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className={`rounded-md px-2 py-1 text-xs ${
-              isNote
-                ? "text-violet-800 hover:bg-violet-100"
-                : "text-zinc-700 hover:bg-zinc-100"
-            }`}
-            title="Attach file"
-          >
-            Attach
-          </button>
-        </div>
       </div>
 
       <div className="p-4">
         {selectedTab ? (
           <p
             className={`mb-3 text-xs ${
-              isNote ? "text-violet-700" : "text-zinc-500"
+              isNote ? "text-violet-700" : "text-muted"
             }`}
           >
             {selectedTab.description}
           </p>
         ) : null}
 
-        {!isNote ? (
-          <div className="mb-3">
+        <div
+          className={`relative rounded-lg border ${
+            isNote
+              ? "border-violet-200 bg-violet-100/60 focus-within:border-violet-400"
+              : "border-border bg-surface focus-within:border-blue-500"
+          }`}
+        >
+          <textarea
+            ref={textareaRef}
+            value={replyText}
+            onChange={(event) => setReplyText(event.target.value)}
+            onPaste={handlePaste}
+            placeholder={
+              isNote
+                ? "Tulis catatan internal untuk agent lain..."
+                : "Tulis balasan ke user..."
+            }
+            className={`block w-full resize-none border-0 bg-transparent px-3 pb-11 pt-2 text-sm outline-none ${
+              isNote ? "text-violet-950" : "text-foreground"
+            }`}
+            style={{ minHeight: "120px" }}
+          />
+
+          <div
+            className={`absolute inset-x-0 bottom-0 flex items-center gap-1 border-t px-2 py-1.5 ${
+              isNote
+                ? "border-violet-200 bg-violet-100/80"
+                : "border-border bg-surface-muted/60"
+            }`}
+          >
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              title="Attach file"
+              aria-label="Attach file"
+              className={`inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium transition-colors ${
+                isNote
+                  ? "text-violet-800 hover:bg-violet-200/70"
+                  : "text-muted hover:bg-surface hover:text-foreground"
+              }`}
+            >
+              <PaperclipIcon />
+              Attachment
+            </button>
             <TicketSnippetPicker
               snippetContext={snippetContext}
               onSelect={handleSnippetSelect}
+              buttonClassName={
+                isNote
+                  ? "text-violet-800 hover:bg-violet-200/70"
+                  : "text-muted hover:bg-surface hover:text-foreground"
+              }
             />
           </div>
-        ) : null}
-
-        <textarea
-          value={replyText}
-          onChange={(event) => setReplyText(event.target.value)}
-          onPaste={handlePaste}
-          rows={5}
-          placeholder={
-            isNote
-              ? "Tulis catatan internal untuk agent lain..."
-              : "Tulis balasan ke user..."
-          }
-          className={`w-full resize-y rounded-lg border px-3 py-2 text-sm outline-none ${
-            isNote
-              ? "border-violet-200 bg-violet-100/60 text-violet-950 focus:border-violet-400"
-              : "border-zinc-200 bg-white text-zinc-900 focus:border-zinc-400"
-          }`}
-        />
+        </div>
 
         <input
           ref={fileInputRef}
@@ -383,8 +430,8 @@ export function TicketReplyComposer({
                 key={attachment.id}
                 className={`flex items-center gap-3 rounded-md border px-3 py-2 ${
                   isNote
-                    ? "border-violet-200 bg-white/70"
-                    : "border-zinc-200 bg-zinc-50"
+                    ? "border-violet-200 bg-surface/70"
+                    : "border-border bg-surface-muted"
                 }`}
               >
                 {attachment.previewUrl ? (
@@ -392,18 +439,18 @@ export function TicketReplyComposer({
                   <img
                     src={attachment.previewUrl}
                     alt={attachment.file.name}
-                    className="h-10 w-10 rounded border border-zinc-200 object-cover"
+                    className="h-10 w-10 rounded border border-border object-cover"
                   />
                 ) : (
-                  <span className="flex h-10 w-10 items-center justify-center rounded border border-zinc-200 bg-white text-[10px] font-semibold uppercase text-zinc-500">
+                  <span className="flex h-10 w-10 items-center justify-center rounded border border-border bg-surface text-[10px] font-semibold uppercase text-muted">
                     file
                   </span>
                 )}
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm text-zinc-900">
+                  <p className="truncate text-sm text-foreground">
                     {attachment.file.name}
                   </p>
-                  <p className="text-xs text-zinc-500">
+                  <p className="text-xs text-muted">
                     {formatFileSize(attachment.file.size)}
                     {attachment.isInline ? " · inline image" : " · attachment"}
                   </p>
@@ -411,7 +458,7 @@ export function TicketReplyComposer({
                 <button
                   type="button"
                   onClick={() => removeAttachment(attachment.id)}
-                  className="rounded px-2 py-1 text-xs text-zinc-600 hover:bg-zinc-200"
+                  className="rounded px-2 py-1 text-xs text-muted hover:bg-surface-muted"
                   aria-label={`Remove ${attachment.file.name}`}
                 >
                   Remove
@@ -426,7 +473,7 @@ export function TicketReplyComposer({
             <label
               htmlFor={`reply-status-${ticketId}`}
               className={`block text-xs font-medium ${
-                isNote ? "text-violet-800" : "text-zinc-700"
+                isNote ? "text-violet-800" : "text-foreground"
               }`}
             >
               {isNote ? "Add as" : "Send as"}
@@ -437,10 +484,10 @@ export function TicketReplyComposer({
               onChange={(event) =>
                 setStatusId(event.target.value as ReplyStatusId)
               }
-              className={`rounded-md border bg-white px-3 py-2 text-sm outline-none ${
+              className={`rounded-md border bg-surface px-3 py-2 text-sm outline-none ${
                 isNote
                   ? "border-violet-200 text-violet-950 focus:border-violet-400"
-                  : "border-zinc-200 text-zinc-900 focus:border-zinc-400"
+                  : "border-border text-foreground focus:border-blue-500"
               }`}
             >
               {REPLY_STATUS_OPTIONS.map((option) => (
@@ -452,7 +499,7 @@ export function TicketReplyComposer({
             {selectedStatus ? (
               <p
                 className={`text-xs ${
-                  isNote ? "text-violet-600" : "text-zinc-500"
+                  isNote ? "text-violet-600" : "text-muted"
                 }`}
               >
                 {selectedStatus.description}
@@ -465,7 +512,7 @@ export function TicketReplyComposer({
             onClick={() => void handleSend()}
             disabled={!canSend}
             aria-busy={submitReply.isPending}
-            className={`rounded-md px-4 py-2 text-sm font-medium text-white transition-opacity disabled:cursor-not-allowed disabled:bg-zinc-300 disabled:text-zinc-600 ${
+            className={`rounded-md px-4 py-2 text-sm font-medium text-white transition-opacity disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-muted ${
               isNote
                 ? "bg-violet-700 hover:bg-violet-800"
                 : "bg-blue-700 hover:bg-blue-800"

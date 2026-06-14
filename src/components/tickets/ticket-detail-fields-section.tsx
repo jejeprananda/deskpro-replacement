@@ -13,10 +13,10 @@ export function TicketDetailFieldsSection({
   }
 
   return (
-    <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+    <section className="rounded-xl border border-border bg-surface p-5 shadow-sm">
       <div className="mb-5">
-        <h2 className="text-lg font-semibold text-zinc-900">Ticket Details</h2>
-        <p className="mt-1 text-sm text-zinc-500">
+        <h2 className="text-lg font-semibold text-foreground">Ticket Details</h2>
+        <p className="mt-1 text-sm text-muted">
           Informasi lengkap mengenai tiket ini
         </p>
       </div>
@@ -29,7 +29,7 @@ export function TicketDetailFieldsSection({
           return (
             <div
               key={field.id}
-              className="flex items-start gap-3 rounded-xl border border-zinc-100 bg-zinc-50/70 p-4"
+              className="flex items-start gap-3 rounded-xl border border-border bg-surface-muted/70 p-4"
             >
               <div
                 className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${iconConfig.containerClassName}`}
@@ -38,10 +38,10 @@ export function TicketDetailFieldsSection({
               </div>
 
               <div className="min-w-0">
-                <p className="text-xs font-medium text-zinc-500">
+                <p className="text-xs font-medium text-muted">
                   {field.label}
                 </p>
-                <p className="mt-1 text-sm font-semibold text-zinc-900">
+                <p className="mt-1 text-sm font-semibold text-foreground">
                   {field.value}
                 </p>
               </div>
@@ -55,16 +55,16 @@ export function TicketDetailFieldsSection({
 
 export function TicketDetailFieldsSectionSkeleton() {
   return (
-    <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+    <section className="rounded-xl border border-border bg-surface p-5 shadow-sm">
       <div className="mb-5 space-y-2">
-        <div className="h-6 w-36 animate-pulse rounded bg-zinc-200" />
-        <div className="h-4 w-56 animate-pulse rounded bg-zinc-100" />
+        <div className="h-6 w-36 animate-pulse rounded bg-surface-muted" />
+        <div className="h-4 w-56 animate-pulse rounded bg-surface-muted" />
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         {Array.from({ length: 4 }).map((_, index) => (
           <div
             key={index}
-            className="h-20 animate-pulse rounded-xl bg-zinc-100"
+            className="h-20 animate-pulse rounded-xl bg-surface-muted"
           />
         ))}
       </div>

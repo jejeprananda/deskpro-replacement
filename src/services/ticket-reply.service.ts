@@ -8,8 +8,10 @@ import { DeskproTimeoutError, UnauthorizedError } from "@/lib/errors";
 import { getSession } from "@/lib/session";
 import { loadAuth } from "@/services/load-auth.service";
 import {
+  buildReplyHtml,
   normalizeSubmitTicketReplyResponse,
-  textToReplyHtml,
+  type ReplyAttachment,
+  type ReplyMessageType,
   type ReplyStatusId,
   type SubmitTicketReplyResponse,
 } from "@/types/ticket-reply";
@@ -21,6 +23,8 @@ export type SubmitTicketReplyParams = {
   ticketId: string;
   message: string;
   statusId: ReplyStatusId;
+  messageType: ReplyMessageType;
+  attachments?: ReplyAttachment[];
 };
 
 function collectGraphqlErrors(data: unknown): unknown[] {
@@ -98,8 +102,10 @@ function buildSubmitReplyPayload(params: {
   ticketId: string;
   messageHtml: string;
   statusId: ReplyStatusId;
+  messageType: ReplyMessageType;
   agentId: string;
   agentTeamId: string;
+  attachments: ReplyAttachment[];
 }) {
   return {
     operationName: "SubmitReply",
@@ -109,11 +115,14 @@ function buildSubmitReplyPayload(params: {
         messageHtml: params.messageHtml,
         messageSource: params.messageHtml,
         messageSourceType: "html",
-        isNote: false,
+        isNote: params.messageType === "note",
         emailUser: true,
         primaryTranslation: null,
         usedSnippetTransIds: [],
-        attachments: [],
+        attachments: params.attachments.map((attachment) => ({
+          uploadRequestId: attachment.uploadRequestId,
+          isInline: attachment.isInline,
+        })),
       },
       actions: {
         runMacros: [],
@@ -142,14 +151,20 @@ export async function submitTicketReply(
     throw new UnauthorizedError();
   }
 
+  const attachments = params.attachments ?? [];
   const { agentId, agentTeamId } = await ensureAgentContext(session);
-  const messageHtml = textToReplyHtml(params.message);
+  const inlineDownloadUrls = attachments
+    .filter((attachment) => attachment.isInline && attachment.downloadUrl)
+    .map((attachment) => attachment.downloadUrl as string);
+  const messageHtml = buildReplyHtml(params.message, inlineDownloadUrls);
   const payload = buildSubmitReplyPayload({
     ticketId: params.ticketId,
     messageHtml,
     statusId: params.statusId,
+    messageType: params.messageType,
     agentId,
     agentTeamId,
+    attachments,
   });
 
   console.info(
@@ -160,6 +175,8 @@ export async function submitTicketReply(
       agentId,
       agentTeamId,
       statusId: params.statusId,
+      messageType: params.messageType,
+      attachmentCount: attachments.length,
       path: getDeskproSubmitReplyGraphqlPath(),
     },
   );
@@ -178,7 +195,11 @@ export async function submitTicketReply(
       throw new Error(`Failed to submit ticket reply: ${message}`);
     }
 
-    return normalizeSubmitTicketReplyResponse(data, params.statusId);
+    return normalizeSubmitTicketReplyResponse(
+      data,
+      params.statusId,
+      params.messageType,
+    );
   } catch (error) {
     if (
       error instanceof UnauthorizedError ||

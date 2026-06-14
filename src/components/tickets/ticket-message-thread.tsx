@@ -14,46 +14,60 @@ interface TicketMessageThreadProps {
 
 type MessageStyles = {
   container: string;
-  label: string;
+  accentClass: string;
+  badgeClass: string;
   labelText: string;
   prose: string;
   attachment: string;
   timestamp: string;
+  dividerClass: string;
 };
 
 function getMessageStyles(kind: TicketMessageKind): MessageStyles {
   switch (kind) {
     case "agent":
       return {
-        container: "border-emerald-700 bg-emerald-50",
-        label: "font-semibold text-emerald-900",
-        labelText: "Agent",
+        container: "border-emerald-200 bg-emerald-50/60",
+        accentClass: "border-t-4 border-emerald-500",
+        badgeClass:
+          "rounded bg-emerald-700 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white",
+        labelText: "Email",
         prose: "text-emerald-950",
         attachment:
           "border-emerald-200 bg-white text-emerald-900 hover:bg-emerald-100",
         timestamp: "text-emerald-700",
+        dividerClass: "border-emerald-200",
       };
     case "note":
       return {
-        container: "border-blue-600 bg-blue-50",
-        label: "font-semibold text-blue-900",
+        container: "border-violet-200 bg-violet-50",
+        accentClass: "border-t-4 border-violet-500",
+        badgeClass:
+          "rounded bg-violet-700 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white",
         labelText: "Note",
-        prose: "text-blue-950",
-        attachment: "border-blue-200 bg-white text-blue-900 hover:bg-blue-100",
-        timestamp: "text-blue-700",
+        prose: "text-violet-950",
+        attachment:
+          "border-violet-200 bg-white text-violet-900 hover:bg-violet-100",
+        timestamp: "text-violet-700",
+        dividerClass: "border-violet-200",
       };
     case "user":
       return {
         container: "border-zinc-200 bg-white",
-        label: "font-medium text-zinc-700",
-        labelText: "User",
+        accentClass: "",
+        badgeClass:
+          "rounded bg-zinc-700 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white",
+        labelText: "Form",
         prose: "text-zinc-800",
         attachment:
           "border-zinc-200 bg-zinc-50 text-zinc-700 hover:bg-zinc-100",
         timestamp: "text-zinc-500",
+        dividerClass: "border-zinc-200",
       };
+    case "unknown":
+      return getMessageStyles("note");
     default:
-      return getMessageStyles("user");
+      return getMessageStyles("note");
   }
 }
 
@@ -112,15 +126,17 @@ export function TicketMessageThread({
           return (
             <article
               key={message.id}
-              className={`rounded-lg border p-4 ${styles.container}`}
+              className={`overflow-hidden rounded-lg border p-4 ${styles.accentClass} ${styles.container}`}
             >
-              <div className="mb-2 flex items-center justify-between gap-3">
-                <p className={`text-xs ${styles.label}`}>
-                  {styles.labelText} · #{message.messageNumber}
-                </p>
-                <time className={`text-xs ${styles.timestamp}`}>
-                  {formatDate(message.dateCreated)}
-                </time>
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <span className={styles.badgeClass}>{styles.labelText}</span>
+                <div className={`flex items-center gap-2 text-xs ${styles.timestamp}`}>
+                  <time dateTime={message.dateCreated}>
+                    {formatDate(message.dateCreated)}
+                  </time>
+                  <span>·</span>
+                  <span>#{message.messageNumber}</span>
+                </div>
               </div>
 
               <TicketMessageHtmlContent
@@ -129,7 +145,7 @@ export function TicketMessageThread({
               />
 
               {message.attachments.length > 0 ? (
-                <div className="mt-3 border-t border-zinc-200 pt-3">
+                <div className={`mt-3 border-t pt-3 ${styles.dividerClass}`}>
                   <ul className="flex flex-wrap gap-2">
                     {message.attachments.map((attachment) => (
                       <li key={attachment.id}>

@@ -30,6 +30,7 @@ export interface DeskproLoginResult {
 
 export interface AuthMeResponse {
   authenticated: boolean;
+  agentId: string | null;
   user: {
     id: string;
     name: string;

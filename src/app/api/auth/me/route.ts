@@ -8,6 +8,7 @@ export async function GET() {
 
     const payload: AuthMeResponse = {
       authenticated: session.authenticated,
+      agentId: session.authenticated ? session.agentId || null : null,
       user: session.authenticated
         ? {
             id: session.user.id,
@@ -25,7 +26,7 @@ export async function GET() {
     console.error("[GET /api/auth/me]", error);
 
     return NextResponse.json(
-      { authenticated: false, user: null },
+      { authenticated: false, agentId: null, user: null },
       { status: 500 },
     );
   }

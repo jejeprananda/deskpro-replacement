@@ -22,6 +22,8 @@ export async function POST(request: Request, context: RouteContext) {
       ticketId,
       message: body.message,
       statusId: body.statusId,
+      messageType: body.messageType,
+      attachments: body.attachments,
     });
 
     return NextResponse.json(data);

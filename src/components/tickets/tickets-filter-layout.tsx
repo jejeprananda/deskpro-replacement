@@ -6,20 +6,24 @@ import { TicketFiltersNavSection } from "@/components/tickets/ticket-filters-nav
 import { useTicketFilters } from "@/hooks/useTicketFilters";
 
 interface TicketsFilterLayoutProps {
-  title: string;
   children: ReactNode;
+  searchValue?: string;
+  onSearchChange?: (value: string) => void;
 }
 
 export function TicketsFilterLayout({
-  title,
   children,
+  searchValue,
+  onSearchChange,
 }: TicketsFilterLayoutProps) {
   const { buckets, bucket, filterCountsQuery, handleSelectBucket } =
     useTicketFilters();
 
   return (
     <AppShell
-      title={title}
+      searchValue={searchValue}
+      onSearchChange={onSearchChange}
+      searchPlaceholder="Search tickets..."
       sidebarExtra={
         <TicketFiltersNavSection
           buckets={buckets}

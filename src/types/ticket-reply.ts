@@ -4,9 +4,23 @@ export const replyStatusIdSchema = z.enum(["awaiting_agent", "awaiting_user"]);
 
 export type ReplyStatusId = z.infer<typeof replyStatusIdSchema>;
 
+export const replyMessageTypeSchema = z.enum(["email", "note"]);
+
+export type ReplyMessageType = z.infer<typeof replyMessageTypeSchema>;
+
+export const replyAttachmentSchema = z.object({
+  uploadRequestId: z.string().min(1),
+  isInline: z.boolean(),
+  downloadUrl: z.string().url().optional(),
+});
+
+export type ReplyAttachment = z.infer<typeof replyAttachmentSchema>;
+
 export const submitTicketReplyBodySchema = z.object({
   message: z.string().trim().min(1, "Message is required"),
   statusId: replyStatusIdSchema,
+  messageType: replyMessageTypeSchema.default("email"),
+  attachments: z.array(replyAttachmentSchema).default([]),
 });
 
 export type SubmitTicketReplyBody = z.infer<typeof submitTicketReplyBodySchema>;
@@ -16,6 +30,7 @@ export type SubmitTicketReplyResponse = {
   messageNumber: number;
   dateCreated: string;
   statusId: ReplyStatusId;
+  messageType: ReplyMessageType;
 };
 
 const ticketReplySchema = z.object({
@@ -83,15 +98,30 @@ function escapeHtml(value: string): string {
     .replaceAll("'", "&#39;");
 }
 
-export function textToReplyHtml(text: string): string {
+function buildInlineImageHtml(downloadUrl: string): string {
+  return `<p><img src="${downloadUrl}" alt="" title="" class="inline" data-blob-version="1" width="auto" height=""></p>`;
+}
+
+export function buildReplyHtml(
+  text: string,
+  inlineDownloadUrls: string[] = [],
+): string {
   const normalized = text.replace(/\r\n/g, "\n").trim();
   const escaped = escapeHtml(normalized);
-  return `<p>${escaped.replace(/\n/g, "<br>")}</p>`;
+  const textHtml = `<p>${escaped.replace(/\n/g, "<br>")}</p>`;
+  const inlineHtml = inlineDownloadUrls.map(buildInlineImageHtml).join("");
+
+  return `${textHtml}${inlineHtml}`;
+}
+
+export function textToReplyHtml(text: string): string {
+  return buildReplyHtml(text);
 }
 
 export function normalizeSubmitTicketReplyResponse(
   data: unknown,
   statusId: ReplyStatusId,
+  messageType: ReplyMessageType,
 ): SubmitTicketReplyResponse {
   const ticketReply = findTicketReplyInObject(data);
 
@@ -104,5 +134,6 @@ export function normalizeSubmitTicketReplyResponse(
     messageNumber: ticketReply.messageNumber,
     dateCreated: ticketReply.date_created,
     statusId,
+    messageType,
   };
 }

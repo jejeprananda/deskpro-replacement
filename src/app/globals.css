@@ -1,26 +1,153 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f8fafc;
+  --foreground: #18181b;
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
+  --surface: #ffffff;
+  --border: #e4e4e7;
+  --muted: #71717a;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-primary: var(--primary);
+  --color-surface: var(--surface);
+  --color-border: var(--border);
+  --color-muted: var(--muted);
+  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+}
+
+body:has(.login-page) {
+  background-color: #050508;
+  color: #f4f4f5;
+}
+
+.status-badge-awaiting_agent {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.status-badge-awaiting_user {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.status-badge-in_progress {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+}
+
+.status-badge-on_hold {
+  background-color: #f3e8ff;
+  color: #7e22ce;
+}
+
+.status-badge-resolved {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+
+.status-badge-default {
+  background-color: #f4f4f5;
+  color: #52525b;
+}
+
+@keyframes loginAurora {
+  0%,
+  100% {
+    opacity: 0.85;
+    transform: scale(1) translate(0, 0);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.05) translate(2%, -1%);
+  }
+}
+
+.login-page {
+  position: relative;
+  min-height: 100dvh;
+  overflow: hidden;
+  background-color: #050508;
+  --login-page-muted: rgba(244, 244, 245, 0.5);
+  --login-page-subtle: rgba(244, 244, 245, 0.3);
+  background-image: radial-gradient(
+    circle at 50% 50%,
+    rgba(255, 255, 255, 0.35) 0.5px,
+    transparent 0.5px
+  );
+  background-size: 48px 48px;
+}
+
+.login-page::before,
+.login-page::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.login-page::before {
+  background:
+    radial-gradient(
+      ellipse 55% 45% at 15% 85%,
+      rgba(34, 211, 238, 0.22) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 50% 60% at 85% 20%,
+      rgba(168, 85, 247, 0.28) 0%,
+      transparent 65%
+    ),
+    radial-gradient(
+      ellipse 40% 35% at 70% 75%,
+      rgba(236, 72, 153, 0.15) 0%,
+      transparent 60%
+    );
+  animation: loginAurora 12s ease-in-out infinite;
+}
+
+.login-page::after {
+  background: radial-gradient(
+    ellipse 80% 50% at 50% 100%,
+    rgba(6, 182, 212, 0.08) 0%,
+    transparent 55%
+  );
+}
+
+.login-card[data-surface="dark"] {
+  --login-card-bg: rgba(10, 10, 18, 0.78);
+  --login-card-text: #f4f4f5;
+  --login-card-muted: rgba(244, 244, 245, 0.55);
+  --login-input-bg: rgba(0, 0, 0, 0.35);
+  --login-input-text: #ffffff;
+  --login-input-border: rgba(255, 255, 255, 0.12);
+  --login-input-placeholder: rgba(255, 255, 255, 0.3);
+  --login-icon: rgba(255, 255, 255, 0.4);
+  --login-icon-hover: rgba(255, 255, 255, 0.7);
+}
+
+.login-card[data-surface="light"] {
+  --login-card-bg: rgba(255, 255, 255, 0.88);
+  --login-card-text: #18181b;
+  --login-card-muted: rgba(24, 24, 27, 0.55);
+  --login-input-bg: rgba(255, 255, 255, 0.9);
+  --login-input-text: #18181b;
+  --login-input-border: rgba(0, 0, 0, 0.12);
+  --login-input-placeholder: rgba(24, 24, 27, 0.35);
+  --login-icon: rgba(24, 24, 27, 0.45);
+  --login-icon-hover: rgba(24, 24, 27, 0.7);
 }

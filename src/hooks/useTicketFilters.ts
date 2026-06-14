@@ -5,7 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { DATE_USER_WAITING_FILTER_ID } from "@/lib/ticket-filter-labels";
 import { useTicketFilterCounts } from "@/hooks/useTicketFilterCounts";
 
-const DEFAULT_LIMIT = 58;
+const DEFAULT_LIMIT = 10;
 
 export function useTicketFilters() {
   const router = useRouter();
@@ -59,7 +59,6 @@ export function useTicketFilters() {
         filterId,
         bucket: nextBucket,
         offset: "0",
-        limit: String(DEFAULT_LIMIT),
       };
 
       if (!isOnListPage) {
@@ -95,6 +94,11 @@ export function useTicketFilters() {
       personId: string | null;
       ref: string;
       subject: string;
+      status: string;
+      urgency: number;
+      dateCreated: string | null;
+      assignedAgent: string | null;
+      person: { name: string } | null;
     }) => {
       const params = new URLSearchParams();
       params.set("filterId", filterId);
@@ -112,6 +116,17 @@ export function useTicketFilters() {
       }
       params.set("ref", ticket.ref);
       params.set("subject", ticket.subject);
+      params.set("status", ticket.status);
+      params.set("urgency", String(ticket.urgency));
+      if (ticket.dateCreated) {
+        params.set("dateCreated", ticket.dateCreated);
+      }
+      if (ticket.assignedAgent) {
+        params.set("assignedAgent", ticket.assignedAgent);
+      }
+      if (ticket.person?.name) {
+        params.set("requester", ticket.person.name);
+      }
       return `/tickets/${ticket.id}?${params.toString()}`;
     },
     [bucket, filterId, limit, offset],
@@ -126,6 +141,24 @@ export function useTicketFilters() {
     updateSearchParams({ offset: String(offset + limit) });
   }, [limit, offset, updateSearchParams]);
 
+  const handlePageChange = useCallback(
+    (page: number) => {
+      const nextOffset = Math.max(0, (page - 1) * limit);
+      updateSearchParams({ offset: String(nextOffset) });
+    },
+    [limit, updateSearchParams],
+  );
+
+  const handleLimitChange = useCallback(
+    (nextLimit: number) => {
+      updateSearchParams({
+        limit: String(nextLimit),
+        offset: "0",
+      });
+    },
+    [updateSearchParams],
+  );
+
   return {
     filterId,
     bucket,
@@ -137,6 +170,8 @@ export function useTicketFilters() {
     handleSelectBucket,
     handlePreviousPage,
     handleNextPage,
+    handlePageChange,
+    handleLimitChange,
     buildTicketsListHref,
     buildTicketDetailHref,
   };

@@ -25,9 +25,14 @@ export function getDeskproTicketFqlGroupedUrl(): string {
   return `${getDeskproBaseUrl()}/graphql/TicketFqlGrouped`;
 }
 
-/** POST .../agent-api/graphql/LoadTicketFieldValues,TicketMacros,TicketMessages,TicketMessages */
+/** POST .../agent-api/graphql/AgentForClientSearch */
+export function getDeskproAgentForClientSearchUrl(): string {
+  return `${getDeskproBaseUrl()}/graphql/AgentForClientSearch`;
+}
+
+/** POST .../agent-api/graphql/LoadTicketFieldValues,TicketMacros,TicketMessages */
 export function getDeskproTicketDetailUrl(): string {
-  return `${getDeskproBaseUrl()}/graphql/LoadTicketFieldValues,TicketMacros,TicketMessages,TicketMessages`;
+  return `${getDeskproBaseUrl()}/graphql/LoadTicketFieldValues,TicketMacros,TicketMessages`;
 }
 
 export function getDeskproSiteUrl(): string {
@@ -44,9 +49,24 @@ export function getDeskproSubmitReplyGraphqlPath(): string {
   return "/graphql/SubmitReply";
 }
 
+/** POST .../agent-api/graphql/TicketsMassActions */
+export function getDeskproTicketsMassActionsGraphqlPath(): string {
+  return "/graphql/TicketsMassActions";
+}
+
 /** POST https://kemenkeu-prime.kemenkeu.go.id/agent-api/graphql/SubmitReply */
 export function getDeskproSubmitReplyUrl(): string {
   return `${getDeskproBaseUrl()}${getDeskproSubmitReplyGraphqlPath()}`;
+}
+
+/** POST .../agent-api/graphql/GenerateBlobUploadRequest */
+export function getDeskproGenerateBlobUploadRequestPath(): string {
+  return "/graphql/GenerateBlobUploadRequest";
+}
+
+/** POST .../agent-api/blob-uploader/upload */
+export function getDeskproBlobUploaderUrl(): string {
+  return `${getDeskproBaseUrl()}/blob-uploader/upload`;
 }
 
 export function getDeskproFileUrl(

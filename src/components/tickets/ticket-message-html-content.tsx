@@ -1,13 +1,15 @@
 "use client";
 
 import DOMPurify from "isomorphic-dompurify";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { TicketAttachmentImagePreview } from "@/components/tickets/ticket-attachment-image-preview";
 import { BFF_FETCH_OPTIONS } from "@/lib/bff-fetch";
 import {
   buildAttachmentProxyUrl,
+  getAttachmentAction,
   getDeskproLinkAction,
-  parseDeskproAttachmentHref,
+  parseDeskproFileUrl,
+  rewriteMessageAttachmentUrls,
 } from "@/types/ticket-detail";
 
 interface TicketMessageHtmlContentProps {
@@ -26,6 +28,11 @@ export function TicketMessageHtmlContent({
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
   const [previewKey, setPreviewKey] = useState("");
   const previewObjectUrlRef = useRef<string | null>(null);
+
+  const sanitizedHtml = useMemo(
+    () => DOMPurify.sanitize(rewriteMessageAttachmentUrls(html)),
+    [html],
+  );
 
   const revokePreviewObjectUrl = useCallback(() => {
     if (previewObjectUrlRef.current) {
@@ -100,6 +107,22 @@ export function TicketMessageHtmlContent({
 
   const handleClick = useCallback(
     (event: React.MouseEvent<HTMLDivElement>) => {
+      const img = (event.target as HTMLElement).closest("img");
+      if (img) {
+        const src = img.getAttribute("src");
+        if (src?.startsWith("/api/deskpro/files")) {
+          const url = new URL(src, window.location.origin);
+          const filename = url.searchParams.get("name") ?? "";
+
+          if (getAttachmentAction("", filename) === "preview") {
+            event.preventDefault();
+            void openPreview(src, img.getAttribute("alt")?.trim() || filename);
+          }
+        }
+
+        return;
+      }
+
       const anchor = (event.target as HTMLElement).closest("a");
       if (!anchor) {
         return;
@@ -110,7 +133,7 @@ export function TicketMessageHtmlContent({
         return;
       }
 
-      const parsed = parseDeskproAttachmentHref(href);
+      const parsed = parseDeskproFileUrl(href);
       if (!parsed) {
         return;
       }
@@ -145,10 +168,10 @@ export function TicketMessageHtmlContent({
   return (
     <>
       <div
-        className={className}
+        className={`${className} [&_img]:max-w-full [&_img]:cursor-zoom-in [&_img]:rounded-md`}
         onClick={handleClick}
         dangerouslySetInnerHTML={{
-          __html: DOMPurify.sanitize(html),
+          __html: sanitizedHtml,
         }}
       />
       {isPreviewOpen ? (

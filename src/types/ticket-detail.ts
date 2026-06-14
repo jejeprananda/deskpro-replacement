@@ -1,4 +1,9 @@
 import { z } from "zod";
+import {
+  extractTicketFieldNumericId,
+  getTicketDetailFieldLabel,
+  selectVisibleTicketDetailFields,
+} from "@/lib/ticket-detail-fields";
 
 const customChoiceOptionSchema = z.object({
   title: z.string(),
@@ -52,6 +57,10 @@ const messageSchema = z.object({
   message: z.string(),
   date_created: z.string(),
   __typename: z.string().optional(),
+  is_note: z.boolean().optional(),
+  creationSystem: z.string().optional(),
+  clientDetails: z.unknown().nullable().optional(),
+  emailDetails: z.unknown().nullable().optional(),
   person: z
     .object({
       id: z.union([z.string(), z.number()]).nullable().optional(),
@@ -65,6 +74,7 @@ const ticketMessagesEntrySchema = z.object({
   data: z.object({
     ticket: z.object({
       id: z.union([z.string(), z.number()]),
+      last_channel_used: z.string().nullable().optional(),
       messages: z.object({
         totalCount: z.number(),
         edges: z.array(
@@ -81,6 +91,8 @@ const ticketDetailResponseSchema = z.array(z.unknown());
 
 export type TicketDetailField = {
   id: string;
+  fieldKey: string;
+  label: string;
   value: string;
 };
 
@@ -108,8 +120,14 @@ export type TicketMessage = {
   attachments: TicketMessageAttachment[];
 };
 
+export type TicketDetailSummary = {
+  lastChannelUsed: string | null;
+  dateCreated: string | null;
+};
+
 export type TicketDetailResponse = {
   ticketId: string;
+  summary: TicketDetailSummary;
   fields: TicketDetailField[];
   organizationFields: TicketDetailField[];
   messages: TicketMessage[];
@@ -160,6 +178,19 @@ export type DeskproAttachmentLink = {
   filename: string;
 };
 
+function parseDeskproFileLink(
+  fileKey: string,
+  rawFilename: string,
+): DeskproAttachmentLink | null {
+  const filename = decodeURIComponent(rawFilename);
+
+  if (!filename || filename.includes("..") || filename.includes("/")) {
+    return null;
+  }
+
+  return { fileKey, filename };
+}
+
 export function parseDeskproAttachmentHref(
   href: string,
 ): DeskproAttachmentLink | null {
@@ -175,17 +206,53 @@ export function parseDeskproAttachmentHref(
     return null;
   }
 
-  const filename = decodeURIComponent(rawFilename);
+  return parseDeskproFileLink(fileKey, rawFilename);
+}
 
-  if (!filename || filename.includes("..") || filename.includes("/")) {
+export function parseDeskproFilePhpUrl(href: string): DeskproAttachmentLink | null {
+  const match = href.match(/\/file\.php\/([^/]+)\/([^/?#]+)/);
+  if (!match?.[1] || !match[2]) {
     return null;
   }
 
-  return { fileKey, filename };
+  return parseDeskproFileLink(match[1], match[2]);
+}
+
+export function parseDeskproFileUrl(href: string): DeskproAttachmentLink | null {
+  return parseDeskproAttachmentHref(href) ?? parseDeskproFilePhpUrl(href);
+}
+
+const DESKPRO_ATTACHMENT_URL_PATTERN =
+  /(?:https?:\/\/[^"'\\s]*)?\/agent\/link\/ticket\/attachment\/([^/"'\\s]+)\/([^"'\\s?#]+)/gi;
+
+const DESKPRO_FILE_PHP_URL_PATTERN =
+  /(?:https?:\/\/[^"'\\s]*)?\/file\.php\/([^/"'\\s]+)\/([^"'\\s?#]+)(?:\?[^"'\\s>]*)?/gi;
+
+function replaceDeskproUrlWithProxy(
+  match: string,
+  fileKey: string,
+  rawFilename: string,
+): string {
+  const parsed = parseDeskproFileLink(fileKey, rawFilename);
+  if (!parsed) {
+    return match;
+  }
+
+  return buildAttachmentProxyUrl(parsed.fileKey, parsed.filename);
+}
+
+export function rewriteMessageAttachmentUrls(html: string): string {
+  if (!html) {
+    return html;
+  }
+
+  return html
+    .replace(DESKPRO_ATTACHMENT_URL_PATTERN, replaceDeskproUrlWithProxy)
+    .replace(DESKPRO_FILE_PHP_URL_PATTERN, replaceDeskproUrlWithProxy);
 }
 
 export function getDeskproLinkAction(href: string): AttachmentAction | null {
-  const parsed = parseDeskproAttachmentHref(href);
+  const parsed = parseDeskproFileUrl(href);
   if (!parsed) {
     return null;
   }
@@ -312,16 +379,28 @@ function mapAttachment(
   };
 }
 
-export function resolveMessageKind(typename?: string): TicketMessageKind {
-  if (typename === "TicketMessageAgent") {
-    return "agent";
-  }
+export function resolveMessageKind(
+  raw: z.infer<typeof messageSchema>,
+): TicketMessageKind {
+  const typename = raw.__typename?.trim() ?? "";
 
-  if (typename === "TicketMessageNote") {
+  if (raw.is_note === true || typename.includes("Note")) {
     return "note";
   }
 
-  if (typename === "TicketMessageUser") {
+  if (
+    typename === "TicketMessageAgent" ||
+    raw.emailDetails != null ||
+    raw.creationSystem === "EMAIL"
+  ) {
+    return "agent";
+  }
+
+  if (
+    typename === "TicketMessageUser" ||
+    raw.creationSystem === "FORM" ||
+    (raw.clientDetails != null && raw.emailDetails == null)
+  ) {
     return "user";
   }
 
@@ -329,9 +408,18 @@ export function resolveMessageKind(typename?: string): TicketMessageKind {
 }
 
 function mapField(raw: z.infer<typeof fieldSchema>): TicketDetailField | null {
+  const fieldKey = extractTicketFieldNumericId(raw.id);
+  if (!fieldKey) {
+    return null;
+  }
+
+  const label = getTicketDetailFieldLabel(fieldKey);
+
   if ("selected" in raw && raw.selected?.length) {
     return {
       id: raw.id,
+      fieldKey,
+      label,
       value: raw.selected.map((item) => item.title).join(", "),
     };
   }
@@ -339,6 +427,8 @@ function mapField(raw: z.infer<typeof fieldSchema>): TicketDetailField | null {
   if ("value" in raw && raw.value != null && raw.value !== "") {
     return {
       id: raw.id,
+      fieldKey,
+      label,
       value: String(raw.value),
     };
   }
@@ -362,7 +452,7 @@ function mapMessage(raw: z.infer<typeof messageSchema>): TicketMessage {
   return {
     id: String(raw.id),
     messageNumber: raw.messageNumber,
-    kind: resolveMessageKind(raw.__typename),
+    kind: resolveMessageKind(raw),
     html: raw.message,
     dateCreated: raw.date_created,
     personId: raw.person?.id != null ? String(raw.person.id) : null,
@@ -375,14 +465,20 @@ function mapMessage(raw: z.infer<typeof messageSchema>): TicketMessage {
 function parseMessagesEntries(entries: unknown[]): {
   messages: TicketMessage[];
   totalCount: number;
+  lastChannelUsed: string | null;
 } {
   const messageMap = new Map<string, TicketMessage>();
   let totalCount = 0;
+  let lastChannelUsed: string | null = null;
 
   for (const entry of entries) {
     const parsed = ticketMessagesEntrySchema.safeParse(entry);
     if (!parsed.success) {
       continue;
+    }
+
+    if (parsed.data.data.ticket.last_channel_used) {
+      lastChannelUsed = parsed.data.data.ticket.last_channel_used;
     }
 
     totalCount = Math.max(
@@ -402,7 +498,7 @@ function parseMessagesEntries(entries: unknown[]): {
       new Date(right.dateCreated).getTime(),
   );
 
-  return { messages, totalCount };
+  return { messages, totalCount, lastChannelUsed };
 }
 
 export function normalizeTicketDetail(
@@ -424,14 +520,22 @@ export function normalizeTicketDetail(
     return ticketMessagesEntrySchema.safeParse(entry).success;
   });
 
-  const { messages, totalCount } = parseMessagesEntries(messageEntries);
+  const { messages, totalCount, lastChannelUsed } =
+    parseMessagesEntries(messageEntries);
+  const allFields = [
+    ...mapFields(fieldValues?.data.ticket.fields),
+    ...mapFields(fieldValues?.data.ticket.organization?.fields),
+  ];
+  const oldestMessageDate = messages[0]?.dateCreated ?? null;
 
   return {
     ticketId,
-    fields: mapFields(fieldValues?.data.ticket.fields),
-    organizationFields: mapFields(
-      fieldValues?.data.ticket.organization?.fields,
-    ),
+    summary: {
+      lastChannelUsed,
+      dateCreated: oldestMessageDate,
+    },
+    fields: selectVisibleTicketDetailFields(allFields),
+    organizationFields: [],
     messages,
     messageTotalCount: totalCount,
     hasMoreMessages: totalCount > messages.length,

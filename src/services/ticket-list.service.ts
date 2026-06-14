@@ -1,9 +1,14 @@
 import axios from "axios";
+import {
+  enrichTicketListAgents,
+  resolveAgentNames,
+} from "@/services/agent-directory.service";
 import { DeskproClient } from "@/lib/deskpro-client";
 import { getBucketFql, isDateUserWaitingBucket } from "@/lib/ticket-filter-labels";
 import { DeskproTimeoutError, UnauthorizedError } from "@/lib/errors";
 import {
   normalizeTicketListResponse,
+  shouldEnrichAssignedAgent,
   type TicketListResponse,
 } from "@/types/ticket-list";
 
@@ -73,7 +78,27 @@ export async function fetchTicketList(
       payload,
     );
 
-    return normalizeTicketListResponse(data, params.offset, params.limit);
+    const response = normalizeTicketListResponse(
+      data,
+      params.offset,
+      params.limit,
+    );
+
+    const agentIds = response.tickets
+      .filter(shouldEnrichAssignedAgent)
+      .map((ticket) => ticket.agentId)
+      .filter((agentId): agentId is string => agentId != null);
+
+    if (agentIds.length === 0) {
+      return response;
+    }
+
+    const agentNames = await resolveAgentNames(agentIds);
+
+    return {
+      ...response,
+      tickets: enrichTicketListAgents(response.tickets, agentNames),
+    };
   } catch (error) {
     if (
       error instanceof InvalidTicketBucketError ||

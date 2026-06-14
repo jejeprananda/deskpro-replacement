@@ -43,10 +43,10 @@ export function TicketFiltersNavSection({
           type="button"
           onClick={handleExpandFilters}
           title="Show ticket filters"
-          className={`relative flex w-full flex-col items-center rounded-md px-2 py-2 text-xs transition-colors ${
+          className={`relative flex w-full flex-col items-center rounded-lg px-2 py-2 text-xs transition-colors ${
             selectedBucket
-              ? "bg-zinc-200 font-semibold text-zinc-900"
-              : "text-zinc-600 hover:bg-zinc-100"
+              ? "bg-blue-50 font-semibold text-blue-700"
+              : "text-zinc-600 hover:bg-slate-100"
           }`}
         >
           <span>F</span>
@@ -87,7 +87,7 @@ export function TicketFiltersNavSection({
           <button
             type="button"
             onClick={toggleTicketFiltersOpen}
-            className="flex w-full items-center justify-between rounded-md bg-zinc-200 px-3 py-2 text-sm font-semibold text-zinc-900"
+            className="flex w-full items-center justify-between rounded-lg bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700"
           >
             <span>{selectedBucketItem.label}</span>
             <span>{selectedBucketItem.count}</span>

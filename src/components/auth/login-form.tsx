@@ -2,11 +2,12 @@
 
 import axios from "axios";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Eye, EyeOff, Lock, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { APP_NAME } from "@/lib/app-config";
+import { APP_VERSION } from "@/lib/app-config";
 
 const loginFormSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -15,9 +16,13 @@ const loginFormSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginFormSchema>;
 
+const inputClassName =
+  "w-full rounded-xl border border-[var(--login-input-border)] bg-[var(--login-input-bg)] py-2.5 text-sm text-[var(--login-input-text)] outline-none placeholder:text-[var(--login-input-placeholder)] focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/30";
+
 export function LoginForm() {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -56,60 +61,112 @@ export function LoginForm() {
   }
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="flex w-full max-w-md flex-col gap-4 rounded-xl border border-zinc-200 bg-white p-8 shadow-sm"
-    >
-      <div>
-        <h1 className="text-2xl font-semibold text-zinc-900">{APP_NAME}</h1>
-        <p className="mt-1 text-sm text-zinc-600">Use your agent credentials</p>
-      </div>
-
-      {errorMessage ? (
-        <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-          {errorMessage}
-        </div>
-      ) : null}
-
-      <div className="flex flex-col gap-1">
-        <label htmlFor="username" className="text-sm font-medium text-zinc-700">
-          Username
-        </label>
-        <input
-          id="username"
-          type="text"
-          autoComplete="username"
-          className="rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500"
-          {...register("username")}
-        />
-        {errors.username ? (
-          <p className="text-xs text-red-600">{errors.username.message}</p>
-        ) : null}
-      </div>
-
-      <div className="flex flex-col gap-1">
-        <label htmlFor="password" className="text-sm font-medium text-zinc-700">
-          Password
-        </label>
-        <input
-          id="password"
-          type="password"
-          autoComplete="current-password"
-          className="rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-zinc-500"
-          {...register("password")}
-        />
-        {errors.password ? (
-          <p className="text-xs text-red-600">{errors.password.message}</p>
-        ) : null}
-      </div>
-
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
+    <div className="relative z-10 flex w-full max-w-md flex-col items-center">
+      <div
+        className="login-card w-full rounded-2xl bg-gradient-to-b from-purple-500/40 via-fuchsia-500/20 to-cyan-500/40 p-px"
+        data-surface="dark"
       >
-        {isSubmitting ? "Signing in..." : "Sign in"}
-      </button>
-    </form>
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex flex-col gap-5 rounded-2xl border border-white/10 bg-[var(--login-card-bg)] p-8 backdrop-blur-xl"
+        >
+          <div className="text-center">
+            <h1 className="bg-gradient-to-r from-purple-400 via-fuchsia-400 to-cyan-400 bg-clip-text text-4xl font-bold tracking-tight text-transparent">
+              JEJE
+            </h1>
+            <p className="mt-1 text-xs font-medium tracking-[0.35em] text-[var(--login-card-text)] uppercase">
+              Ticket Manager
+            </p>
+            <div className="mx-auto mt-4 h-px w-16 bg-gradient-to-r from-purple-400 via-fuchsia-400 to-cyan-400" />
+            <p className="mt-4 text-sm text-[var(--login-card-muted)]">
+              Use your agent credentials
+            </p>
+          </div>
+
+          {errorMessage ? (
+            <div className="rounded-xl border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+              {errorMessage}
+            </div>
+          ) : null}
+
+          <div className="flex flex-col gap-1.5">
+            <label
+              htmlFor="username"
+              className="text-sm font-medium text-[var(--login-card-text)]"
+            >
+              Username
+            </label>
+            <div className="relative">
+              <User className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-[var(--login-icon)]" />
+              <input
+                id="username"
+                type="text"
+                autoComplete="username"
+                placeholder="Enter your username"
+                className={`${inputClassName} pr-3 pl-10`}
+                {...register("username")}
+              />
+            </div>
+            {errors.username ? (
+              <p className="text-xs text-red-300">{errors.username.message}</p>
+            ) : null}
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label
+              htmlFor="password"
+              className="text-sm font-medium text-[var(--login-card-text)]"
+            >
+              Password
+            </label>
+            <div className="relative">
+              <Lock className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-[var(--login-icon)]" />
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
+                placeholder="Enter your password"
+                className={`${inputClassName} pr-10 pl-10`}
+                {...register("password")}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  setShowPassword((current) => !current);
+                }}
+                className="absolute top-1/2 right-3 -translate-y-1/2 text-[var(--login-icon)] transition-colors hover:text-[var(--login-icon-hover)]"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
+            </div>
+            {errors.password ? (
+              <p className="text-xs text-red-300">{errors.password.message}</p>
+            ) : null}
+          </div>
+
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="rounded-xl bg-gradient-to-r from-purple-500 via-fuchsia-500 to-cyan-400 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {isSubmitting ? "Signing in..." : "Sign in"}
+          </button>
+        </form>
+      </div>
+
+      <div className="mt-8 flex flex-col items-center gap-2">
+        <p className="flex items-center gap-2 text-sm text-[var(--login-page-muted)]">
+          <span className="h-1.5 w-1.5 rounded-full bg-purple-400" />
+          Deskpro? Cuiiiih!!!
+          <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
+        </p>
+        <p className="text-xs text-[var(--login-page-subtle)]">{APP_VERSION}</p>
+      </div>
+    </div>
   );
 }

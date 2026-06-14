@@ -50,21 +50,7 @@ function buildTicketDetailPayload(params: FetchTicketDetailParams) {
       variables: {
         order: "DESC",
         ticketId: params.ticketId,
-        first: 5,
-      },
-      extensions: {
-        persistedQuery: {
-          version: 1,
-          sha256Hash: TICKET_MESSAGES_HASH,
-        },
-      },
-    },
-    {
-      operationName: "TicketMessages",
-      variables: {
-        order: "ASC",
-        ticketId: params.ticketId,
-        first: 5,
+        first: 15,
       },
       extensions: {
         persistedQuery: {
@@ -82,7 +68,7 @@ export async function fetchTicketDetail(
   try {
     const client = await DeskproClient.fromSession();
     const data = await client.post<unknown>(
-      "/graphql/LoadTicketFieldValues,TicketMacros,TicketMessages,TicketMessages",
+      "/graphql/LoadTicketFieldValues,TicketMacros,TicketMessages",
       buildTicketDetailPayload(params),
     );
 

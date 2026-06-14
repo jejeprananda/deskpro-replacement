@@ -1,11 +1,15 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useMemo } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { TicketsFilterLayout } from "@/components/tickets/tickets-filter-layout";
 import { TicketDetailView } from "@/components/tickets/ticket-detail-view";
 import { useTicketDetail } from "@/hooks/useTicketDetail";
 import { useTicketFilters } from "@/hooks/useTicketFilters";
+import {
+  buildTicketDetailHeaderMeta,
+  parseUrgencyParam,
+} from "@/lib/ticket-detail-header";
 
 function TicketDetailPageInner() {
   const params = useParams<{ ticketId: string }>();
@@ -14,20 +18,36 @@ function TicketDetailPageInner() {
 
   const ticketId = params.ticketId;
   const ownerId = searchParams.get("ownerId");
-  const ticketRef = searchParams.get("ref");
-  const ticketSubject = searchParams.get("subject");
 
   const detailQuery = useTicketDetail({
     ticketId,
     ownerId,
   });
 
+  const headerMeta = useMemo(
+    () =>
+      buildTicketDetailHeaderMeta({
+        urlParams: {
+          ref: searchParams.get("ref"),
+          subject: searchParams.get("subject"),
+          status: searchParams.get("status"),
+          urgency: parseUrgencyParam(searchParams.get("urgency")),
+          dateCreated: searchParams.get("dateCreated"),
+          requester: searchParams.get("requester"),
+          assignedAgent: searchParams.get("assignedAgent"),
+        },
+        summary: detailQuery.data?.summary,
+        fallbackRef: ticketId,
+        fallbackSubject: "Loading ticket...",
+      }),
+    [detailQuery.data?.summary, searchParams, ticketId],
+  );
+
   return (
     <TicketDetailView
       ticketId={ticketId}
       ownerId={ownerId}
-      ticketRef={ticketRef}
-      ticketSubject={ticketSubject}
+      headerMeta={headerMeta}
       backHref={buildTicketsListHref()}
       detail={detailQuery.data}
       isLoading={detailQuery.isLoading}
@@ -40,7 +60,7 @@ function TicketDetailPageInner() {
 
 function TicketDetailPageFallback() {
   return (
-    <TicketsFilterLayout title="Ticket Detail">
+    <TicketsFilterLayout>
       <div className="h-80 animate-pulse rounded-xl bg-zinc-100" />
     </TicketsFilterLayout>
   );
@@ -49,7 +69,7 @@ function TicketDetailPageFallback() {
 export function TicketDetailPageShell() {
   return (
     <Suspense fallback={<TicketDetailPageFallback />}>
-      <TicketsFilterLayout title="Ticket Detail">
+      <TicketsFilterLayout>
         <TicketDetailPageInner />
       </TicketsFilterLayout>
     </Suspense>

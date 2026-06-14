@@ -22,6 +22,7 @@ const ticketSchema = z.object({
       name: z.string().nullable().optional(),
       display_name: z.string().nullable().optional(),
       displayName: z.string().nullable().optional(),
+      primary_email: z.string().nullable().optional(),
     })
     .nullable()
     .optional(),
@@ -85,21 +86,23 @@ export type TicketListResponse = {
   limit: number;
 };
 
-function mapAssignedAgent(
-  agent: z.infer<typeof ticketSchema>["agent"],
-): string | null {
-  if (!agent) {
-    return null;
+export type AgentLabelFields = {
+  id?: string | number | null;
+  name?: string | null;
+  display_name?: string | null;
+  displayName?: string | null;
+};
+
+export function formatAgentLabel(agent: AgentLabelFields): string | null {
+  const fullName = agent.name?.trim();
+  if (fullName) {
+    return fullName;
   }
 
-  const displayName =
-    agent.display_name?.trim() ||
-    agent.displayName?.trim() ||
-    agent.name?.trim() ||
-    null;
-
-  if (displayName) {
-    return displayName;
+  const shortLabel =
+    agent.display_name?.trim() || agent.displayName?.trim() || null;
+  if (shortLabel) {
+    return shortLabel;
   }
 
   if (agent.id != null) {
@@ -107,6 +110,43 @@ function mapAssignedAgent(
   }
 
   return null;
+}
+
+export function isShortAgentLabel(value: string | null | undefined): boolean {
+  if (!value) {
+    return false;
+  }
+
+  const trimmed = value.trim();
+  return /^\d+$/.test(trimmed) || /^Agent\s+\d+/i.test(trimmed);
+}
+
+function mapAssignedAgent(
+  agent: z.infer<typeof ticketSchema>["agent"],
+): string | null {
+  if (!agent) {
+    return null;
+  }
+
+  return formatAgentLabel(agent);
+}
+
+export function isAssignedAgentIdOnly(ticket: TicketListItem): boolean {
+  if (!ticket.agentId) {
+    return false;
+  }
+
+  return ticket.assignedAgent == null || ticket.assignedAgent === ticket.agentId;
+}
+
+export function shouldEnrichAssignedAgent(ticket: TicketListItem): boolean {
+  if (!ticket.agentId) {
+    return false;
+  }
+
+  return (
+    isAssignedAgentIdOnly(ticket) || isShortAgentLabel(ticket.assignedAgent)
+  );
 }
 
 function mapTicket(raw: z.infer<typeof ticketSchema>): TicketListItem {

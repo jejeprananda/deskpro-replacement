@@ -1,7 +1,7 @@
 "use client";
 
 import axios from "axios";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import type { TicketListResponse } from "@/types/ticket-list";
 
 export type TicketListQueryParams = {
@@ -30,6 +30,18 @@ export function useTicketList(params: TicketListQueryParams) {
     queryKey: ["tickets", "list", params],
     queryFn: () => fetchTicketList(params),
     enabled: Boolean(params.bucket),
-    placeholderData: keepPreviousData,
+    placeholderData: (previousData, previousQuery) => {
+      const prev = previousQuery?.queryKey[2] as
+        | TicketListQueryParams
+        | undefined;
+      if (
+        prev &&
+        prev.filterId === params.filterId &&
+        prev.bucket === params.bucket
+      ) {
+        return previousData;
+      }
+      return undefined;
+    },
   });
 }

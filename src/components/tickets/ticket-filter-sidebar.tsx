@@ -31,9 +31,7 @@ export function TicketFilterSidebar({
   }
 
   if (errorMessage) {
-    return (
-      <p className="text-sm text-red-600">{errorMessage}</p>
-    );
+    return <p className="text-sm text-red-600">{errorMessage}</p>;
   }
 
   if (buckets.length === 0) {
@@ -52,14 +50,14 @@ export function TicketFilterSidebar({
             <button
               type="button"
               onClick={() => onSelectBucket(bucket.value)}
-              className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-sm transition-colors ${
+              className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors ${
                 isSelected
-                  ? "bg-zinc-200 font-semibold text-zinc-900"
-                  : "text-zinc-700 hover:bg-zinc-100"
+                  ? "bg-blue-50 font-semibold text-blue-700"
+                  : "text-zinc-700 hover:bg-slate-100"
               }`}
             >
               <span>{bucket.label}</span>
-              <span>{bucket.count}</span>
+              <span className="tabular-nums">{bucket.count}</span>
             </button>
           </li>
         );

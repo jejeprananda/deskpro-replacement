@@ -3,6 +3,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { TicketPersonalSnippetPicker } from "@/components/tickets/ticket-personal-snippet-picker";
 import { TicketSnippetPicker } from "@/components/tickets/ticket-snippet-picker";
 import { PaperclipIcon } from "@/components/ui/attachment-icons";
 import { useSubmitTicketReply } from "@/hooks/useSubmitTicketReply";
@@ -398,6 +399,15 @@ export function TicketReplyComposer({
               Attachment
             </button>
             <TicketSnippetPicker
+              snippetContext={snippetContext}
+              onSelect={handleSnippetSelect}
+              buttonClassName={
+                isNote
+                  ? "text-violet-800 hover:bg-violet-200/70"
+                  : "text-muted hover:bg-surface hover:text-foreground"
+              }
+            />
+            <TicketPersonalSnippetPicker
               snippetContext={snippetContext}
               onSelect={handleSnippetSelect}
               buttonClassName={

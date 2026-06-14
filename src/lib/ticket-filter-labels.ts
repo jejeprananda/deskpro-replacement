@@ -89,3 +89,19 @@ export function sortDateUserWaitingBuckets<
     return leftOrder - rightOrder;
   });
 }
+
+export function pickDefaultBucketWithTickets(
+  buckets: { value: string; count: number }[],
+): DateUserWaitingBucket {
+  const countsByValue = new Map(
+    buckets.map((bucket) => [bucket.value, bucket.count]),
+  );
+
+  for (const bucket of DATE_USER_WAITING_BUCKET_ORDER) {
+    if ((countsByValue.get(bucket) ?? 0) > 0) {
+      return bucket;
+    }
+  }
+
+  return "1_to_2_days";
+}

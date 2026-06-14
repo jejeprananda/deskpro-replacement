@@ -46,7 +46,7 @@ export function TicketFiltersNavSection({
           className={`relative flex w-full flex-col items-center rounded-lg px-2 py-2 text-xs transition-colors ${
             selectedBucket
               ? "bg-blue-50 font-semibold text-blue-700"
-              : "text-zinc-600 hover:bg-slate-100"
+              : "text-muted hover:bg-surface-muted"
           }`}
         >
           <span>F</span>
@@ -63,11 +63,11 @@ export function TicketFiltersNavSection({
       <button
         type="button"
         onClick={toggleTicketFiltersOpen}
-        className="flex w-full items-center justify-between px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-zinc-500 hover:bg-zinc-50"
+        className="flex w-full items-center justify-between px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted hover:bg-surface-muted"
         aria-expanded={ticketFiltersOpen}
       >
         <span>Waiting duration</span>
-        <span className="text-[10px] normal-case tracking-normal text-zinc-400">
+        <span className="text-[10px] normal-case tracking-normal text-muted">
           {ticketFiltersOpen ? "Hide" : "Show"}
         </span>
       </button>

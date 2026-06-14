@@ -14,20 +14,20 @@ export function TicketsByAgeChart({
   const maxCount = Math.max(...buckets.map((bucket) => bucket.count), 1);
 
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+    <div className="rounded-xl border border-border bg-surface p-5 shadow-sm">
       <div className="mb-4">
-        <h2 className="text-sm font-semibold text-zinc-900">Tickets by Age</h2>
-        <p className="mt-1 text-xs text-zinc-500">
+        <h2 className="text-sm font-semibold text-foreground">Tickets by Age</h2>
+        <p className="mt-1 text-xs text-muted">
           Distribution by waiting duration
         </p>
       </div>
 
       {isLoading ? (
-        <div className="flex h-48 items-center justify-center text-sm text-zinc-400">
+        <div className="flex h-48 items-center justify-center text-sm text-muted">
           Loading...
         </div>
       ) : buckets.length === 0 ? (
-        <div className="flex h-48 items-center justify-center text-sm text-zinc-400">
+        <div className="flex h-48 items-center justify-center text-sm text-muted">
           No data available
         </div>
       ) : (
@@ -40,7 +40,7 @@ export function TicketsByAgeChart({
                 key={bucket.value}
                 className="flex min-w-0 flex-1 flex-col items-center gap-2"
               >
-                <span className="text-xs font-medium tabular-nums text-zinc-700">
+                <span className="text-xs font-medium tabular-nums text-foreground">
                   {bucket.count}
                 </span>
                 <div className="flex h-36 w-full items-end">
@@ -50,7 +50,7 @@ export function TicketsByAgeChart({
                     title={`${bucket.label}: ${bucket.count}`}
                   />
                 </div>
-                <span className="line-clamp-2 text-center text-[10px] leading-tight text-zinc-500">
+                <span className="line-clamp-2 text-center text-[10px] leading-tight text-muted">
                   {bucket.label}
                 </span>
               </div>

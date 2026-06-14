@@ -35,17 +35,17 @@ export function RowActionsMenu({ href }: RowActionsMenuProps) {
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
-        className="rounded-md p-1.5 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700"
+        className="rounded-md p-1.5 text-muted hover:bg-surface-muted hover:text-foreground"
         aria-label="Row actions"
       >
         <MoreVertical className="h-4 w-4" />
       </button>
 
       {open ? (
-        <div className="absolute right-0 z-10 mt-1 min-w-36 rounded-lg border border-zinc-200 bg-white py-1 shadow-lg">
+        <div className="absolute right-0 z-10 mt-1 min-w-36 rounded-lg border border-border bg-surface py-1 shadow-lg">
           <Link
             href={href}
-            className="block px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50"
+            className="block px-3 py-2 text-sm text-foreground hover:bg-surface-muted"
             onClick={() => setOpen(false)}
           >
             View ticket

@@ -24,8 +24,8 @@ export function ToastContainer() {
             role="status"
             className={`pointer-events-auto flex items-start gap-3 rounded-lg border px-4 py-3 text-sm shadow-lg ${
               isSuccess
-                ? "border-emerald-200 bg-emerald-50 text-emerald-900"
-                : "border-red-200 bg-red-50 text-red-800"
+                ? "border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200"
+                : "border-red-200 bg-red-50 text-red-800 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-200"
             }`}
           >
             <span className="flex-1">{toast.message}</span>
@@ -34,8 +34,8 @@ export function ToastContainer() {
               onClick={() => dismissToast(toast.id)}
               className={`shrink-0 rounded px-1 text-xs font-medium ${
                 isSuccess
-                  ? "text-emerald-700 hover:text-emerald-900"
-                  : "text-red-700 hover:text-red-900"
+                  ? "text-emerald-700 hover:text-emerald-900 dark:text-emerald-300 dark:hover:text-emerald-100"
+                  : "text-red-700 hover:text-red-900 dark:text-red-300 dark:hover:text-red-100"
               }`}
               aria-label="Dismiss notification"
             >

@@ -144,7 +144,7 @@ function TicketsPageContent() {
 function TicketsPageFallback() {
   return (
     <TicketsFilterLayout>
-      <div className="h-80 animate-pulse rounded-xl bg-zinc-100" />
+      <div className="h-80 animate-pulse rounded-xl bg-surface-muted" />
     </TicketsFilterLayout>
   );
 }

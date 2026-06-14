@@ -1,13 +1,25 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #f8fafc;
   --foreground: #18181b;
   --primary: #2563eb;
   --primary-foreground: #ffffff;
   --surface: #ffffff;
+  --surface-muted: #f4f4f5;
   --border: #e4e4e7;
   --muted: #71717a;
+}
+
+.dark {
+  --background: #0a0a0f;
+  --foreground: #f4f4f5;
+  --surface: #141419;
+  --surface-muted: #1c1c24;
+  --border: #2a2a32;
+  --muted: #a1a1aa;
 }
 
 @theme inline {
@@ -15,6 +27,7 @@
   --color-foreground: var(--foreground);
   --color-primary: var(--primary);
   --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
   --color-border: var(--border);
   --color-muted: var(--muted);
   --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
@@ -62,6 +75,32 @@ body:has(.login-page) {
 .status-badge-default {
   background-color: #f4f4f5;
   color: #52525b;
+}
+
+.dark .status-badge-awaiting_agent,
+.dark .status-badge-awaiting_user {
+  background-color: rgba(146, 64, 14, 0.25);
+  color: #fcd34d;
+}
+
+.dark .status-badge-in_progress {
+  background-color: rgba(29, 78, 216, 0.25);
+  color: #93c5fd;
+}
+
+.dark .status-badge-on_hold {
+  background-color: rgba(126, 34, 206, 0.25);
+  color: #d8b4fe;
+}
+
+.dark .status-badge-resolved {
+  background-color: rgba(21, 128, 61, 0.25);
+  color: #86efac;
+}
+
+.dark .status-badge-default {
+  background-color: rgba(82, 82, 91, 0.35);
+  color: #d4d4d8;
 }
 
 @keyframes loginAurora {

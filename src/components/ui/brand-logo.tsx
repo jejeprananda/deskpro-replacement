@@ -19,10 +19,10 @@ export function BrandLogo({ compact = false }: BrandLogoProps) {
       </div>
       {!compact ? (
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold leading-tight text-zinc-900">
+          <p className="truncate text-sm font-semibold leading-tight text-foreground">
             Jeje&apos;s
           </p>
-          <p className="truncate text-[11px] leading-tight text-zinc-500">
+          <p className="truncate text-[11px] leading-tight text-muted">
             Ticket Manager
           </p>
         </div>

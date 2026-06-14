@@ -48,11 +48,11 @@ export function SlaStatusPanel({
   const donutGradient = buildDonutGradient(items);
 
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+    <div className="rounded-xl border border-border bg-surface p-5 shadow-sm">
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-sm font-semibold text-zinc-900">SLA Status</h2>
-          <p className="mt-1 text-xs text-zinc-500">Current SLA severity</p>
+          <h2 className="text-sm font-semibold text-foreground">SLA Status</h2>
+          <p className="mt-1 text-xs text-muted">Current SLA severity</p>
         </div>
         <Link
           href="/tickets?filterId=13"
@@ -63,11 +63,11 @@ export function SlaStatusPanel({
       </div>
 
       {isLoading ? (
-        <div className="flex h-48 items-center justify-center text-sm text-zinc-400">
+        <div className="flex h-48 items-center justify-center text-sm text-muted">
           Loading...
         </div>
       ) : items.length === 0 ? (
-        <div className="flex h-48 items-center justify-center text-sm text-zinc-400">
+        <div className="flex h-48 items-center justify-center text-sm text-muted">
           No SLA data available
         </div>
       ) : (
@@ -77,11 +77,11 @@ export function SlaStatusPanel({
               className="h-full w-full rounded-full"
               style={{ background: donutGradient }}
             />
-            <div className="absolute inset-5 flex flex-col items-center justify-center rounded-full bg-white">
-              <span className="text-2xl font-semibold tabular-nums text-zinc-900">
+            <div className="absolute inset-5 flex flex-col items-center justify-center rounded-full bg-surface">
+              <span className="text-2xl font-semibold tabular-nums text-foreground">
                 {total}
               </span>
-              <span className="text-xs text-zinc-500">Total</span>
+              <span className="text-xs text-muted">Total</span>
             </div>
           </div>
 
@@ -100,9 +100,9 @@ export function SlaStatusPanel({
                       className="h-2.5 w-2.5 shrink-0 rounded-full"
                       style={{ backgroundColor: getSlaColor(item.value) }}
                     />
-                    <span className="truncate text-zinc-700">{item.label}</span>
+                    <span className="truncate text-foreground">{item.label}</span>
                   </div>
-                  <span className="shrink-0 tabular-nums text-zinc-500">
+                  <span className="shrink-0 tabular-nums text-muted">
                     {item.count} ({percentage}%)
                   </span>
                 </li>

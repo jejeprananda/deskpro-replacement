@@ -41,18 +41,18 @@ export function AppShell({
   const toggleSidebar = useUiStore((state) => state.toggleSidebar);
 
   return (
-    <div className="flex min-h-full flex-1 bg-slate-50">
+    <div className="flex min-h-full flex-1 bg-background">
       <aside
         className={`${
           sidebarOpen ? "w-64" : "w-16"
-        } flex shrink-0 flex-col border-r border-zinc-200 bg-white transition-all`}
+        } flex shrink-0 flex-col border-r border-border bg-surface transition-all`}
       >
-        <div className="flex items-center justify-between border-b border-zinc-200 p-4">
+        <div className="flex items-center justify-between border-b border-border p-4">
           <BrandLogo compact={!sidebarOpen} />
           <button
             type="button"
             onClick={toggleSidebar}
-            className="rounded-md px-2 py-1 text-xs text-zinc-500 hover:bg-zinc-100"
+            className="rounded-md px-2 py-1 text-xs text-muted hover:bg-surface-muted"
             aria-label="Toggle sidebar"
           >
             {sidebarOpen ? "<<" : ">>"}
@@ -74,8 +74,8 @@ export function AppShell({
                 title={item.label}
                 className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
                   isActive
-                    ? "bg-blue-50 font-medium text-blue-700"
-                    : "text-zinc-700 hover:bg-zinc-100"
+                    ? "bg-blue-50 font-medium text-blue-700 dark:bg-blue-950/40 dark:text-blue-300"
+                    : "text-foreground hover:bg-surface-muted"
                 }`}
               >
                 <Icon className="h-4 w-4 shrink-0" />
@@ -86,7 +86,7 @@ export function AppShell({
         </nav>
 
         {sidebarExtra ? (
-          <div className="min-h-0 flex-1 overflow-y-auto border-t border-zinc-200">
+          <div className="min-h-0 flex-1 overflow-y-auto border-t border-border">
             {sidebarExtra}
           </div>
         ) : null}

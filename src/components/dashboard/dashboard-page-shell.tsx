@@ -24,25 +24,27 @@ export function DashboardPageShell() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-zinc-900">Dashboard</h1>
-        <p className="mt-1 text-sm text-zinc-500">
+        <h1 className="text-2xl font-semibold text-foreground">Dashboard</h1>
+        <p className="mt-1 text-sm text-muted">
           Welcome back, {displayName}
         </p>
       </div>
 
       {dashboardQuery.isError ? (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-200">
           Failed to load dashboard data. Please refresh the page.
         </div>
       ) : null}
 
       {!isLoading && data && data.slaFailedCount > 0 ? (
-        <div className="flex flex-col gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between dark:border-red-900/50 dark:bg-red-950/30">
           <div className="flex items-start gap-3">
-            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
+            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-red-600 dark:text-red-400" />
             <div>
-              <p className="text-sm font-medium text-red-800">SLA Breach Alert</p>
-              <p className="mt-0.5 text-sm text-red-700">
+              <p className="text-sm font-medium text-red-800 dark:text-red-200">
+                SLA Breach Alert
+              </p>
+              <p className="mt-0.5 text-sm text-red-700 dark:text-red-300">
                 You have {data.slaFailedCount} ticket
                 {data.slaFailedCount === 1 ? "" : "s"} with failed SLA.
               </p>
@@ -50,7 +52,7 @@ export function DashboardPageShell() {
           </div>
           <Link
             href="/tickets?filterId=13"
-            className="inline-flex shrink-0 items-center justify-center rounded-lg border border-red-300 bg-white px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-100"
+            className="inline-flex shrink-0 items-center justify-center rounded-lg border border-red-300 bg-surface px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-100 dark:border-red-800 dark:text-red-200 dark:hover:bg-red-950/50"
           >
             View SLA tickets
           </Link>

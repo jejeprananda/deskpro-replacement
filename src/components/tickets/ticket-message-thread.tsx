@@ -34,7 +34,7 @@ function getMessageStyles(kind: TicketMessageKind): MessageStyles {
         labelText: "Email",
         prose: "text-emerald-950",
         attachment:
-          "border-emerald-200 bg-white text-emerald-900 hover:bg-emerald-100",
+          "border-emerald-200 bg-surface text-emerald-900 hover:bg-emerald-100",
         timestamp: "text-emerald-700",
         dividerClass: "border-emerald-200",
       };
@@ -47,22 +47,22 @@ function getMessageStyles(kind: TicketMessageKind): MessageStyles {
         labelText: "Note",
         prose: "text-violet-950",
         attachment:
-          "border-violet-200 bg-white text-violet-900 hover:bg-violet-100",
+          "border-violet-200 bg-surface text-violet-900 hover:bg-violet-100",
         timestamp: "text-violet-700",
         dividerClass: "border-violet-200",
       };
     case "user":
       return {
-        container: "border-zinc-200 bg-white",
+        container: "border-border bg-surface",
         accentClass: "",
         badgeClass:
           "rounded bg-zinc-700 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white",
         labelText: "Form",
-        prose: "text-zinc-800",
+        prose: "text-foreground",
         attachment:
-          "border-zinc-200 bg-zinc-50 text-zinc-700 hover:bg-zinc-100",
-        timestamp: "text-zinc-500",
-        dividerClass: "border-zinc-200",
+          "border-border bg-surface-muted text-foreground hover:bg-surface-muted",
+        timestamp: "text-muted",
+        dividerClass: "border-border",
       };
     case "unknown":
       return getMessageStyles("note");
@@ -79,7 +79,7 @@ function formatDate(value: string): string {
 }
 
 const MESSAGE_LINK_CLASSES =
-  "[&_a]:inline-flex [&_a]:items-center [&_a]:rounded-md [&_a]:border [&_a]:border-blue-200 [&_a]:bg-white [&_a]:px-2.5 [&_a]:py-1 [&_a]:text-xs [&_a]:font-medium [&_a]:text-blue-600 [&_a]:no-underline [&_a]:hover:bg-blue-50 [&_a]:hover:text-blue-700";
+  "[&_a]:inline-flex [&_a]:items-center [&_a]:rounded-md [&_a]:border [&_a]:border-blue-200 [&_a]:bg-surface [&_a]:px-2.5 [&_a]:py-1 [&_a]:text-xs [&_a]:font-medium [&_a]:text-blue-600 [&_a]:no-underline [&_a]:hover:bg-blue-50 [&_a]:hover:text-blue-700";
 
 export function TicketMessageThread({
   messages,
@@ -94,7 +94,7 @@ export function TicketMessageThread({
         {Array.from({ length: 3 }).map((_, index) => (
           <div
             key={index}
-            className="h-24 animate-pulse rounded-lg bg-zinc-100"
+            className="h-24 animate-pulse rounded-lg bg-surface-muted"
           />
         ))}
       </div>
@@ -106,14 +106,14 @@ export function TicketMessageThread({
   }
 
   if (messages.length === 0) {
-    return <p className="text-sm text-zinc-500">No messages yet.</p>;
+    return <p className="text-sm text-muted">No messages yet.</p>;
   }
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-zinc-900">Messages</h3>
-        <p className="text-xs text-zinc-500">
+        <h3 className="text-sm font-semibold text-foreground">Messages</h3>
+        <p className="text-xs text-muted">
           Showing {messages.length} of {totalCount}
           {hasMoreMessages ? " (load more coming soon)" : ""}
         </p>
@@ -141,6 +141,8 @@ export function TicketMessageThread({
 
               <TicketMessageHtmlContent
                 html={message.html}
+                messageId={message.id}
+                attachments={message.attachments}
                 className={`prose prose-sm max-w-none ${styles.prose} ${MESSAGE_LINK_CLASSES}`}
               />
 

@@ -77,7 +77,7 @@ export function SearchableSelect({
       ? "border-blue-300 bg-blue-50/80 hover:border-blue-400 focus:border-blue-500 focus:ring-blue-100"
       : variant === "pending"
         ? "border-amber-300 bg-amber-50/70 text-amber-900 hover:border-amber-400 focus:border-amber-500 focus:ring-amber-100"
-        : "border-zinc-200 bg-white hover:border-zinc-300 focus:border-blue-500 focus:ring-blue-100";
+        : "border-border bg-surface hover:border-border focus:border-blue-500 focus:ring-blue-100";
 
   return (
     <div ref={containerRef} className="relative">
@@ -86,11 +86,11 @@ export function SearchableSelect({
         type="button"
         disabled={disabled}
         onClick={() => setOpen((current) => !current)}
-        className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left text-sm outline-none disabled:cursor-not-allowed disabled:bg-zinc-50 disabled:text-zinc-400 ${triggerClassName}`}
+        className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left text-sm outline-none disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-muted ${triggerClassName}`}
       >
         <span
           className={`min-w-0 flex-1 truncate ${
-            selectedOption ? "text-zinc-900" : variant === "pending" ? "text-amber-700" : "text-zinc-500"
+            selectedOption ? "text-foreground" : variant === "pending" ? "text-amber-700" : "text-muted"
           }`}
         >
           {selectedOption
@@ -99,27 +99,27 @@ export function SearchableSelect({
               : selectedOption.label
             : placeholder}
         </span>
-        <ChevronDown className="ml-2 h-4 w-4 shrink-0 text-zinc-400" />
+        <ChevronDown className="ml-2 h-4 w-4 shrink-0 text-muted" />
       </button>
 
       {open ? (
-        <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-lg">
-          <div className="border-b border-zinc-100 p-2">
+        <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-lg border border-border bg-surface shadow-lg">
+          <div className="border-b border-border p-2">
             <div className="relative">
-              <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+              <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
               <input
                 type="search"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Search"
-                className="w-full rounded-md border border-zinc-200 py-1.5 pl-8 pr-8 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                className="w-full rounded-md border border-border py-1.5 pl-8 pr-8 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 autoFocus
               />
               {search ? (
                 <button
                   type="button"
                   onClick={() => setSearch("")}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-zinc-400 hover:text-zinc-600"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-muted hover:text-muted"
                   aria-label="Clear search"
                 >
                   <X className="h-3.5 w-3.5" />
@@ -130,7 +130,7 @@ export function SearchableSelect({
 
           <ul className="max-h-60 overflow-y-auto py-1">
             {filteredOptions.length === 0 ? (
-              <li className="px-3 py-2 text-sm text-zinc-500">No results.</li>
+              <li className="px-3 py-2 text-sm text-muted">No results.</li>
             ) : (
               filteredOptions.map((option) => {
                 const isSelected = option.value === value;
@@ -147,7 +147,7 @@ export function SearchableSelect({
                       className={`flex w-full items-center px-3 py-2 text-left text-sm transition-colors ${
                         isSelected
                           ? "bg-blue-50 text-blue-700"
-                          : "text-zinc-700 hover:bg-zinc-50"
+                          : "text-foreground hover:bg-surface-muted"
                       }`}
                     >
                       {renderOption ? renderOption(option) : option.label}
@@ -159,7 +159,7 @@ export function SearchableSelect({
           </ul>
 
           {footer ? (
-            <div className="border-t border-zinc-100 p-2">{footer}</div>
+            <div className="border-t border-border p-2">{footer}</div>
           ) : null}
         </div>
       ) : null}

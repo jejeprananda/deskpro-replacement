@@ -1,7 +1,7 @@
 "use client";
 
 import type { TicketDetailResponse } from "@/types/ticket-detail";
-import type { TicketDetailHeaderMeta } from "@/lib/ticket-detail-header";
+import type { TicketDetailHeaderMeta, TicketDetailHeaderPatch } from "@/lib/ticket-detail-header";
 import {
   TicketDetailFieldsSection,
   TicketDetailFieldsSectionSkeleton,
@@ -21,6 +21,7 @@ interface TicketDetailViewProps {
   detail: TicketDetailResponse | undefined;
   isLoading?: boolean;
   errorMessage?: string | null;
+  onTicketActionsApplied?: (patch: TicketDetailHeaderPatch) => void;
 }
 
 export function TicketDetailView({
@@ -31,6 +32,7 @@ export function TicketDetailView({
   detail,
   isLoading = false,
   errorMessage = null,
+  onTicketActionsApplied,
 }: TicketDetailViewProps) {
   return (
     <div className="space-y-6">
@@ -65,8 +67,10 @@ export function TicketDetailView({
 
       <TicketReplyComposer
         ticketId={ticketId}
+        ticketRef={headerMeta.ref}
         ownerId={ownerId}
         listHref={backHref}
+        onActionsApplied={onTicketActionsApplied}
         snippetContext={{
           requesterName: headerMeta.requester,
           subject:

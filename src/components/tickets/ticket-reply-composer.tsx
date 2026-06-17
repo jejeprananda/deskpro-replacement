@@ -1,15 +1,25 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
+import { SlidersHorizontal } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { TicketActionsDialog } from "@/components/tickets/ticket-actions-dialog";
+import { TicketReplySubmitDialog } from "@/components/tickets/ticket-reply-submit-dialog";
 import { TicketPersonalSnippetPicker } from "@/components/tickets/ticket-personal-snippet-picker";
 import { TicketSnippetPicker } from "@/components/tickets/ticket-snippet-picker";
 import { PaperclipIcon } from "@/components/ui/attachment-icons";
 import { useSubmitTicketReply } from "@/hooks/useSubmitTicketReply";
+import { useTicketFilters } from "@/hooks/useTicketFilters";
+import type { TicketDetailHeaderPatch } from "@/lib/ticket-detail-header";
 import type { SnippetVariables } from "@/lib/snippet-content";
-import { useToastStore } from "@/stores/toast.store";
-import type { ReplyMessageType, ReplyStatusId } from "@/types/ticket-reply";
+import {
+  getDefaultReplyStatus,
+  type ReplyMessageType,
+  type ReplyStatusId,
+  type ReplySubmitProgress,
+  type ReplySubmitStage,
+} from "@/types/ticket-reply";
 
 const MAX_TEXTAREA_HEIGHT = 320;
 
@@ -71,9 +81,11 @@ type PendingAttachment = {
 
 interface TicketReplyComposerProps {
   ticketId: string;
+  ticketRef: string;
   ownerId?: string | null;
   listHref: string;
   snippetContext: SnippetVariables;
+  onActionsApplied?: (patch: TicketDetailHeaderPatch) => void;
 }
 
 function isAcceptedFile(file: File): boolean {
@@ -120,16 +132,28 @@ function getErrorMessage(error: unknown): string {
 
 export function TicketReplyComposer({
   ticketId,
+  ticketRef,
   ownerId = null,
   listHref,
   snippetContext,
+  onActionsApplied,
 }: TicketReplyComposerProps) {
+  const [actionsOpen, setActionsOpen] = useState(false);
+  const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
+  const [submitProgress, setSubmitProgress] = useState<ReplySubmitProgress | null>(
+    null,
+  );
+  const [submitAttachmentCount, setSubmitAttachmentCount] = useState(0);
+  const lastSubmitStageRef = useRef<ReplySubmitStage>("preparing");
+  const shouldRedirectAfterSuccessRef = useRef(false);
   const router = useRouter();
   const queryClient = useQueryClient();
-  const showToast = useToastStore((state) => state.showToast);
+  const { returnToTicketsList } = useTicketFilters();
   const [messageType, setMessageType] = useState<ReplyMessageType>("email");
   const [replyText, setReplyText] = useState("");
-  const [statusId, setStatusId] = useState<ReplyStatusId>("awaiting_agent");
+  const [statusId, setStatusId] = useState<ReplyStatusId>(() =>
+    getDefaultReplyStatus("email"),
+  );
   const [pendingAttachments, setPendingAttachments] = useState<
     PendingAttachment[]
   >([]);
@@ -247,9 +271,19 @@ export function TicketReplyComposer({
 
   const handleSend = useCallback(async () => {
     const message = replyText.trim();
-    if (!message || submitReply.isPending) {
+    if (!message || submitReply.isPending || submitDialogOpen) {
       return;
     }
+
+    const attachments = pendingAttachments.map((attachment) => ({
+      file: attachment.file,
+      isInline: attachment.isInline,
+    }));
+
+    setSubmitDialogOpen(true);
+    setSubmitProgress({ stage: "preparing" });
+    setSubmitAttachmentCount(attachments.length);
+    lastSubmitStageRef.current = "preparing";
 
     try {
       await submitReply.mutateAsync({
@@ -258,53 +292,67 @@ export function TicketReplyComposer({
         message,
         statusId,
         messageType,
-        attachments: pendingAttachments.map((attachment) => ({
-          file: attachment.file,
-          isInline: attachment.isInline,
-        })),
+        attachments,
+        onProgress: (progress) => {
+          if (progress.stage !== "success" && progress.stage !== "error") {
+            lastSubmitStageRef.current = progress.stage;
+          }
+          setSubmitProgress(progress);
+        },
       });
 
       setReplyText("");
-      setStatusId("awaiting_agent");
+      setStatusId(getDefaultReplyStatus(messageType));
       clearPendingAttachments();
       requestAnimationFrame(() => {
         adjustTextareaHeight();
       });
-      showToast(
-        messageType === "note"
-          ? "Catatan berhasil ditambahkan."
-          : "Balasan berhasil dikirim.",
-        "success",
-      );
 
-      if (messageType === "email" && statusId === "awaiting_user") {
+      shouldRedirectAfterSuccessRef.current =
+        messageType === "email" && statusId === "awaiting_user";
+
+      if (shouldRedirectAfterSuccessRef.current) {
         void queryClient.invalidateQueries({ queryKey: ["tickets"] });
-        router.push(listHref);
       }
+
+      setSubmitProgress({ stage: "success" });
     } catch (error) {
-      showToast(getErrorMessage(error), "error");
+      setSubmitProgress({
+        stage: "error",
+        message: getErrorMessage(error),
+        failedAt: lastSubmitStageRef.current,
+      });
     }
   }, [
     adjustTextareaHeight,
     clearPendingAttachments,
-    listHref,
     messageType,
     ownerId,
     pendingAttachments,
     queryClient,
     replyText,
-    router,
-    showToast,
     statusId,
+    submitDialogOpen,
     submitReply,
     ticketId,
   ]);
+
+  const handleSubmitDialogClose = useCallback(() => {
+    setSubmitDialogOpen(false);
+    setSubmitProgress(null);
+
+    if (shouldRedirectAfterSuccessRef.current) {
+      shouldRedirectAfterSuccessRef.current = false;
+      router.push(listHref);
+    }
+  }, [listHref, router]);
 
   const selectedStatus = REPLY_STATUS_OPTIONS.find(
     (option) => option.value === statusId,
   );
   const selectedTab = MESSAGE_TYPE_TABS.find((tab) => tab.value === messageType);
-  const canSend = replyText.trim().length > 0 && !submitReply.isPending;
+  const canSend =
+    replyText.trim().length > 0 && !submitReply.isPending && !submitDialogOpen;
   const isNote = messageType === "note";
 
   return (
@@ -328,7 +376,10 @@ export function TicketReplyComposer({
             <button
               key={tab.value}
               type="button"
-              onClick={() => setMessageType(tab.value)}
+              onClick={() => {
+                setMessageType(tab.value);
+                setStatusId(getDefaultReplyStatus(tab.value));
+              }}
               className={`rounded-t-md px-4 py-2 text-sm font-medium transition-colors ${
                 isActive
                   ? isNote
@@ -517,25 +568,52 @@ export function TicketReplyComposer({
             ) : null}
           </div>
 
-          <button
-            type="button"
-            onClick={() => void handleSend()}
-            disabled={!canSend}
-            aria-busy={submitReply.isPending}
-            className={`rounded-md px-4 py-2 text-sm font-medium text-white transition-opacity disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-muted ${
-              isNote
-                ? "bg-violet-700 hover:bg-violet-800"
-                : "bg-blue-700 hover:bg-blue-800"
-            }`}
-          >
-            {submitReply.isPending
-              ? "Mengirim..."
-              : isNote
-                ? "Add note"
-                : "Send"}
-          </button>
+          <div className="flex items-center gap-2 self-end">
+            <button
+              type="button"
+              onClick={() => setActionsOpen(true)}
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-surface px-4 py-2 text-sm font-medium text-foreground hover:bg-surface-muted"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+              Actions
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleSend()}
+              disabled={!canSend}
+              aria-busy={submitReply.isPending}
+              className={`rounded-md px-4 py-2 text-sm font-medium text-white transition-opacity disabled:cursor-not-allowed disabled:bg-surface-muted disabled:text-muted ${
+                isNote
+                  ? "bg-violet-700 hover:bg-violet-800"
+                  : "bg-blue-700 hover:bg-blue-800"
+              }`}
+            >
+              {submitReply.isPending
+                ? "Mengirim..."
+                : isNote
+                  ? "Add note"
+                  : "Send"}
+            </button>
+          </div>
         </div>
       </div>
+
+      <TicketActionsDialog
+        open={actionsOpen}
+        ticketId={ticketId}
+        ticketRef={ticketRef}
+        onClose={() => setActionsOpen(false)}
+        onActionsApplied={onActionsApplied}
+        onSuccessComplete={() => returnToTicketsList({ resetOffset: true })}
+      />
+
+      <TicketReplySubmitDialog
+        open={submitDialogOpen}
+        messageType={messageType}
+        attachmentCount={submitAttachmentCount}
+        progress={submitProgress}
+        onClose={handleSubmitDialogClose}
+      />
     </div>
   );
 }

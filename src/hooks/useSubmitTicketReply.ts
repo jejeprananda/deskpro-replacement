@@ -6,6 +6,7 @@ import type {
   ReplyAttachment,
   ReplyMessageType,
   ReplyStatusId,
+  ReplySubmitProgress,
   SubmitTicketReplyResponse,
 } from "@/types/ticket-reply";
 
@@ -21,6 +22,7 @@ export type SubmitTicketReplyParams = {
   messageType: ReplyMessageType;
   attachments?: SubmitTicketReplyFile[];
   ownerId?: string | null;
+  onProgress?: (progress: ReplySubmitProgress) => void;
 };
 
 type BlobUploadResponse = {
@@ -44,18 +46,30 @@ async function uploadReplyFile(file: File): Promise<BlobUploadResponse> {
 async function submitTicketReplyRequest(
   params: SubmitTicketReplyParams,
 ): Promise<SubmitTicketReplyResponse> {
+  const { onProgress } = params;
   const attachmentFiles = params.attachments ?? [];
-  const uploadedAttachments: ReplyAttachment[] = await Promise.all(
-    attachmentFiles.map(async (item) => {
-      const uploaded = await uploadReplyFile(item.file);
 
-      return {
-        uploadRequestId: uploaded.uploadRequestId,
-        isInline: item.isInline,
-        downloadUrl: item.isInline ? uploaded.downloadUrl : undefined,
-      };
-    }),
-  );
+  onProgress?.({ stage: "preparing" });
+
+  const uploadedAttachments: ReplyAttachment[] = [];
+
+  for (let index = 0; index < attachmentFiles.length; index++) {
+    const item = attachmentFiles[index];
+    onProgress?.({
+      stage: "uploading",
+      current: index + 1,
+      total: attachmentFiles.length,
+    });
+
+    const uploaded = await uploadReplyFile(item.file);
+    uploadedAttachments.push({
+      uploadRequestId: uploaded.uploadRequestId,
+      isInline: item.isInline,
+      downloadUrl: item.isInline ? uploaded.downloadUrl : undefined,
+    });
+  }
+
+  onProgress?.({ stage: "submitting" });
 
   const { data } = await axios.post<SubmitTicketReplyResponse>(
     `/api/deskpro/tickets/${params.ticketId}/reply`,

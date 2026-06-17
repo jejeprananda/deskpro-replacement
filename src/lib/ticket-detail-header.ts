@@ -105,6 +105,27 @@ export function buildTicketDetailHeaderMeta(input: {
   };
 }
 
+export type TicketDetailHeaderPatch = Partial<
+  Pick<TicketDetailHeaderMeta, "status" | "assignedAgent">
+>;
+
+export function mergeTicketDetailHeaderMeta(
+  meta: TicketDetailHeaderMeta,
+  patch: TicketDetailHeaderPatch | null | undefined,
+): TicketDetailHeaderMeta {
+  if (!patch) {
+    return meta;
+  }
+
+  return {
+    ...meta,
+    ...(patch.status !== undefined ? { status: patch.status } : {}),
+    ...(patch.assignedAgent !== undefined
+      ? { assignedAgent: patch.assignedAgent }
+      : {}),
+  };
+}
+
 export function formatTicketDetailDate(value: string): string {
   return new Intl.DateTimeFormat("id-ID", {
     dateStyle: "medium",

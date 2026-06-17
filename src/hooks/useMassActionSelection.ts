@@ -1,17 +1,14 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import {
-  createMassActionStep,
-  type MassActionStep,
-  type MassActionType,
-} from "@/types/mass-action";
+import { useMassActionSteps } from "@/hooks/useMassActionSteps";
 
 export function useMassActionSelection() {
   const [selectedTicketIds, setSelectedTicketIds] = useState<Set<string>>(
     () => new Set(),
   );
-  const [steps, setSteps] = useState<MassActionStep[]>([]);
+  const { steps, clearSteps, addStep, removeStep, updateStep } =
+    useMassActionSteps();
 
   const panelOpen = selectedTicketIds.size > 0;
 
@@ -42,31 +39,8 @@ export function useMassActionSelection() {
 
   const clearSelection = useCallback(() => {
     setSelectedTicketIds(new Set());
-    setSteps([]);
-  }, []);
-
-  const addStep = useCallback((type: MassActionType) => {
-    setSteps((current) => {
-      if (current.some((step) => step.type === type)) {
-        return current;
-      }
-
-      return [...current, createMassActionStep(type)];
-    });
-  }, []);
-
-  const removeStep = useCallback((stepId: string) => {
-    setSteps((current) => current.filter((step) => step.id !== stepId));
-  }, []);
-
-  const updateStep = useCallback(
-    (stepId: string, updater: (step: MassActionStep) => MassActionStep) => {
-      setSteps((current) =>
-        current.map((step) => (step.id === stepId ? updater(step) : step)),
-      );
-    },
-    [],
-  );
+    clearSteps();
+  }, [clearSteps]);
 
   const selectionState = useMemo(
     () => ({

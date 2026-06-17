@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   DATE_USER_WAITING_FILTER_ID,
   pickDefaultBucketWithTickets,
@@ -14,6 +15,7 @@ export function useTicketFilters() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
 
   const filterId =
     searchParams.get("filterId") ?? DATE_USER_WAITING_FILTER_ID;
@@ -75,21 +77,42 @@ export function useTicketFilters() {
     [filterId, pathname, updateSearchParams],
   );
 
-  const buildTicketsListHref = useCallback(() => {
-    const params = new URLSearchParams();
-    params.set("filterId", filterId);
-    if (bucket) {
-      params.set("bucket", bucket);
-    }
-    if (offset > 0) {
-      params.set("offset", String(offset));
-    }
-    if (limit !== DEFAULT_LIMIT) {
-      params.set("limit", String(limit));
-    }
-    const query = params.toString();
-    return query ? `/tickets?${query}` : "/tickets";
-  }, [bucket, filterId, limit, offset]);
+  const buildTicketsListHref = useCallback(
+    (options?: { resetOffset?: boolean }) => {
+      const params = new URLSearchParams();
+      params.set("filterId", filterId);
+      if (bucket) {
+        params.set("bucket", bucket);
+      }
+      const effectiveOffset =
+        options?.resetOffset === false ? offset : 0;
+      if (effectiveOffset > 0) {
+        params.set("offset", String(effectiveOffset));
+      }
+      if (limit !== DEFAULT_LIMIT) {
+        params.set("limit", String(limit));
+      }
+      const query = params.toString();
+      return query ? `/tickets?${query}` : "/tickets";
+    },
+    [bucket, filterId, limit, offset],
+  );
+
+  const returnToTicketsList = useCallback(
+    async (options?: { resetOffset?: boolean }) => {
+      const href = buildTicketsListHref(options);
+      router.push(href);
+
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: ["tickets", "list"] }),
+        queryClient.refetchQueries({ queryKey: ["tickets", "filter-counts"] }),
+        queryClient.refetchQueries({
+          queryKey: ["tickets", "status-summary"],
+        }),
+      ]);
+    },
+    [buildTicketsListHref, queryClient, router],
+  );
 
   const buildTicketDetailHref = useCallback(
     (ticket: {
@@ -196,5 +219,6 @@ export function useTicketFilters() {
     handleLimitChange,
     buildTicketsListHref,
     buildTicketDetailHref,
+    returnToTicketsList,
   };
 }

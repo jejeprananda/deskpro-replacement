@@ -30,6 +30,11 @@ export function TicketsFilterLayout({
           selectedBucket={bucket}
           onSelectBucket={handleSelectBucket}
           isLoading={filterCountsQuery.isLoading}
+          remainingTicketCount={
+            filterCountsQuery.isSuccess
+              ? (filterCountsQuery.data?.dateUserWaiting.total ?? null)
+              : null
+          }
           errorMessage={
             filterCountsQuery.isError
               ? "Failed to load filter counts."

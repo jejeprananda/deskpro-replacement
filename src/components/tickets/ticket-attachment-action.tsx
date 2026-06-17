@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { TicketAttachmentImagePreview } from "@/components/tickets/ticket-attachment-image-preview";
 import { PaperclipIcon } from "@/components/ui/attachment-icons";
-import { BFF_FETCH_OPTIONS } from "@/lib/bff-fetch";
+import { bffFetch } from "@/lib/bff-fetch";
 import {
   buildMessageAttachmentUrl,
   getAttachmentDisposition,
@@ -94,7 +94,7 @@ export function TicketAttachmentAction({
       setState("downloading");
 
       try {
-        const response = await fetch(url, BFF_FETCH_OPTIONS);
+        const response = await bffFetch(url);
 
         if (!response.ok) {
           throw new Error("Failed to download attachment");
@@ -130,7 +130,7 @@ export function TicketAttachmentAction({
       revokePreviewObjectUrl();
 
       try {
-        const response = await fetch(url, BFF_FETCH_OPTIONS);
+        const response = await bffFetch(url);
 
         if (!response.ok) {
           throw new Error("Failed to load preview");

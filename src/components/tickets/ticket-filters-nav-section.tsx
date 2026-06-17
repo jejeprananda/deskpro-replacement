@@ -9,7 +9,37 @@ interface TicketFiltersNavSectionProps {
   selectedBucket: string | null;
   onSelectBucket: (bucket: string) => void;
   isLoading?: boolean;
+  remainingTicketCount?: number | null;
   errorMessage?: string | null;
+}
+
+function RemainingTicketsLabel({
+  count,
+  isLoading,
+}: {
+  count: number | null | undefined;
+  isLoading: boolean;
+}) {
+  const labelClassName =
+    "px-4 pt-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted";
+
+  if (isLoading) {
+    return (
+      <div className={labelClassName}>
+        <div className="h-3 w-32 animate-pulse rounded bg-surface-muted" />
+      </div>
+    );
+  }
+
+  if (count == null) {
+    return null;
+  }
+
+  return (
+    <p className={labelClassName}>
+      {count} tiket tersisa
+    </p>
+  );
 }
 
 export function TicketFiltersNavSection({
@@ -17,6 +47,7 @@ export function TicketFiltersNavSection({
   selectedBucket,
   onSelectBucket,
   isLoading = false,
+  remainingTicketCount = null,
   errorMessage = null,
 }: TicketFiltersNavSectionProps) {
   const sidebarOpen = useUiStore((state) => state.sidebarOpen);
@@ -37,12 +68,17 @@ export function TicketFiltersNavSection({
   }
 
   if (!sidebarOpen) {
+    const collapsedTitle =
+      remainingTicketCount != null
+        ? `${remainingTicketCount} tiket tersisa`
+        : "Show ticket filters";
+
     return (
       <div className="p-2">
         <button
           type="button"
           onClick={handleExpandFilters}
-          title="Show ticket filters"
+          title={collapsedTitle}
           className={`relative flex w-full flex-col items-center rounded-lg px-2 py-2 text-xs transition-colors ${
             selectedBucket
               ? "bg-blue-50 font-semibold text-blue-700"
@@ -50,7 +86,9 @@ export function TicketFiltersNavSection({
           }`}
         >
           <span>F</span>
-          {selectedBucketItem ? (
+          {remainingTicketCount != null ? (
+            <span className="mt-1 tabular-nums">{remainingTicketCount}</span>
+          ) : selectedBucketItem ? (
             <span className="mt-1 tabular-nums">{selectedBucketItem.count}</span>
           ) : null}
         </button>
@@ -60,6 +98,11 @@ export function TicketFiltersNavSection({
 
   return (
     <div className="flex h-full flex-col">
+      <RemainingTicketsLabel
+        count={remainingTicketCount}
+        isLoading={isLoading}
+      />
+
       <button
         type="button"
         onClick={toggleTicketFiltersOpen}

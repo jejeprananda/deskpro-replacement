@@ -3,7 +3,7 @@
 import DOMPurify from "isomorphic-dompurify";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { TicketAttachmentImagePreview } from "@/components/tickets/ticket-attachment-image-preview";
-import { BFF_FETCH_OPTIONS } from "@/lib/bff-fetch";
+import { bffFetch } from "@/lib/bff-fetch";
 import {
   buildAttachmentProxyUrl,
   getAttachmentAction,
@@ -112,7 +112,7 @@ export function TicketMessageHtmlContent({
         img.setAttribute("data-bff-url", bffUrl);
 
         try {
-          const response = await fetch(bffUrl, BFF_FETCH_OPTIONS);
+          const response = await bffFetch(bffUrl);
           if (!response.ok || cancelled) {
             continue;
           }
@@ -150,7 +150,7 @@ export function TicketMessageHtmlContent({
       revokePreviewObjectUrl();
 
       try {
-        const response = await fetch(bffUrl, BFF_FETCH_OPTIONS);
+        const response = await bffFetch(bffUrl);
 
         if (!response.ok) {
           throw new Error("Failed to load preview");
@@ -179,7 +179,7 @@ export function TicketMessageHtmlContent({
   }, []);
 
   const downloadFile = useCallback(async (bffUrl: string, filename: string) => {
-    const response = await fetch(bffUrl, BFF_FETCH_OPTIONS);
+    const response = await bffFetch(bffUrl);
 
     if (!response.ok) {
       throw new Error("Failed to download file");

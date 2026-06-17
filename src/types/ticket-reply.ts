@@ -8,6 +8,12 @@ export const replyMessageTypeSchema = z.enum(["email", "note"]);
 
 export type ReplyMessageType = z.infer<typeof replyMessageTypeSchema>;
 
+export function getDefaultReplyStatus(
+  messageType: ReplyMessageType,
+): ReplyStatusId {
+  return messageType === "note" ? "awaiting_agent" : "awaiting_user";
+}
+
 export const replyAttachmentSchema = z.object({
   uploadRequestId: z.string().min(1),
   isInline: z.boolean(),
@@ -32,6 +38,24 @@ export type SubmitTicketReplyResponse = {
   statusId: ReplyStatusId;
   messageType: ReplyMessageType;
 };
+
+export type ReplySubmitStage =
+  | "preparing"
+  | "uploading"
+  | "submitting"
+  | "success"
+  | "error";
+
+export type ReplySubmitProgress =
+  | { stage: "preparing" }
+  | { stage: "uploading"; current: number; total: number }
+  | { stage: "submitting" }
+  | { stage: "success" }
+  | {
+      stage: "error";
+      message: string;
+      failedAt?: Exclude<ReplySubmitStage, "success" | "error">;
+    };
 
 const ticketReplySchema = z.object({
   id: z.union([z.string(), z.number()]),

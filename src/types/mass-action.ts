@@ -169,3 +169,83 @@ export function canApplyMassActions(
     steps.every(isMassActionStepConfigured)
   );
 }
+
+export type TicketActionHeaderPatch = {
+  status?: string | null;
+  assignedAgent?: string | null;
+};
+
+export function buildHeaderPatchFromMassActionSteps(
+  steps: MassActionStep[],
+): TicketActionHeaderPatch {
+  const patch: TicketActionHeaderPatch = {};
+
+  for (const step of steps) {
+    if (!isMassActionStepConfigured(step)) {
+      continue;
+    }
+
+    switch (step.type) {
+      case "change_status":
+        patch.status = step.statusId;
+        break;
+      case "change_assigned_agent":
+        patch.assignedAgent = step.isUnassign ? null : step.agentLabel;
+        break;
+      case "change_assigned_team":
+        break;
+    }
+  }
+
+  return patch;
+}
+
+export type MassActionSubmitStage =
+  | "preparing"
+  | "submitting"
+  | "success"
+  | "error";
+
+export type MassActionSubmitProgress =
+  | { stage: "preparing" }
+  | { stage: "submitting" }
+  | { stage: "success" }
+  | {
+      stage: "error";
+      message: string;
+      failedAt?: Exclude<MassActionSubmitStage, "success" | "error">;
+    };
+
+export function getMassActionSubmitTitle(
+  ticketCount: number,
+  progress: MassActionSubmitProgress | null,
+): string {
+  const isSingle = ticketCount === 1;
+
+  if (progress?.stage === "success") {
+    return isSingle ? "Action diterapkan" : "Mass action diterapkan";
+  }
+
+  if (progress?.stage === "error") {
+    return isSingle ? "Gagal menerapkan action" : "Gagal menerapkan mass action";
+  }
+
+  return isSingle ? "Menerapkan action..." : "Menerapkan mass action...";
+}
+
+export function getMassActionSubmitResultMessage(
+  ticketCount: number,
+  progress: MassActionSubmitProgress | null,
+): string | null {
+  if (progress?.stage === "success") {
+    return ticketCount === 1
+      ? "Action berhasil diterapkan."
+      : `Action berhasil diterapkan ke ${ticketCount} tickets.`;
+  }
+
+  if (progress?.stage === "error") {
+    return progress.message;
+  }
+
+  return null;
+}

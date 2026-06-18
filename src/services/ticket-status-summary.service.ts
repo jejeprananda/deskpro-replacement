@@ -6,12 +6,11 @@ import {
   isDateUserWaitingBucket,
 } from "@/lib/ticket-filter-labels";
 import { getSession } from "@/lib/session";
-import { DeskproTimeoutError, UnauthorizedError } from "@/lib/errors";
+import { DeskproTimeoutError, InvalidTicketBucketError, UnauthorizedError } from "@/lib/errors";
 import {
   normalizeTicketStatusSummary,
   type TicketStatusSummary,
 } from "@/types/ticket-status-summary";
-import { InvalidTicketBucketError } from "@/services/ticket-list.service";
 import type { TicketScope } from "@/types/ticket-list";
 
 const TICKET_FILTER_COUNT_HASH =

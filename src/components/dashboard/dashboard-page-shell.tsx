@@ -86,8 +86,8 @@ export function DashboardPageShell() {
 
       <RecentTicketsList
         tickets={data?.recentTickets ?? []}
-        bucket={data?.recentTicketsBucket ?? "1_to_2_days"}
-        bucketLabel={data?.recentTicketsBucketLabel ?? "1 - 2 days"}
+        bucket={data?.recentTicketsBucket ?? ""}
+        bucketLabel={data?.recentTicketsBucketLabel ?? ""}
         isLoading={isLoading}
       />
     </div>

@@ -10,7 +10,11 @@ import {
   isDateUserWaitingBucket,
 } from "@/lib/ticket-filter-labels";
 import { getSession } from "@/lib/session";
-import { DeskproTimeoutError, UnauthorizedError } from "@/lib/errors";
+import {
+  DeskproTimeoutError,
+  InvalidTicketBucketError,
+  UnauthorizedError,
+} from "@/lib/errors";
 import {
   normalizeTicketListResponse,
   shouldEnrichAssignedAgent,
@@ -30,12 +34,7 @@ export type FetchTicketListParams = {
   waitingSort?: "asc" | "desc";
 };
 
-export class InvalidTicketBucketError extends Error {
-  constructor(bucket: string) {
-    super(`Unknown ticket bucket: ${bucket}`);
-    this.name = "InvalidTicketBucketError";
-  }
-}
+export { InvalidTicketBucketError } from "@/lib/errors";
 
 function buildTicketFqlGroupedPayload(params: {
   filterId: string;

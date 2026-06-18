@@ -21,3 +21,10 @@ export class DeskproTimeoutError extends Error {
     this.name = "DeskproTimeoutError";
   }
 }
+
+export class InvalidTicketBucketError extends Error {
+  constructor(bucket: string) {
+    super(`Unknown ticket bucket: ${bucket}`);
+    this.name = "InvalidTicketBucketError";
+  }
+}

@@ -8,11 +8,10 @@ import {
   DATE_USER_WAITING_FILTER_ID,
   formatBucketLabel,
   getBucketFql,
-  isDateUserWaitingBucket,
   pickDefaultBucketWithTickets,
   sortDateUserWaitingBuckets,
 } from "@/lib/ticket-filter-labels";
-import { DeskproTimeoutError, UnauthorizedError } from "@/lib/errors";
+import { DeskproTimeoutError, InvalidTicketBucketError, UnauthorizedError } from "@/lib/errors";
 import {
   getSlaFailedCount,
   mapSlaSeverityBuckets,
@@ -119,10 +118,6 @@ function buildTicketFqlGroupedPayload(params: {
 }
 
 async function fetchRecentTickets(bucket: string) {
-  if (!isDateUserWaitingBucket(bucket)) {
-    throw new Error(`Invalid recent tickets bucket: ${bucket}`);
-  }
-
   const client = await DeskproClient.fromSession();
   const data = await client.post<unknown>(
     "/graphql/TicketFqlGrouped",
@@ -192,6 +187,7 @@ export async function fetchDashboard(): Promise<DashboardResponse> {
     };
   } catch (error) {
     if (
+      error instanceof InvalidTicketBucketError ||
       error instanceof UnauthorizedError ||
       error instanceof DeskproTimeoutError
     ) {

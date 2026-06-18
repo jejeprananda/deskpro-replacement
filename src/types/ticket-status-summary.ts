@@ -89,7 +89,18 @@ export function deriveStatusSummaryFromTickets(
   };
 }
 
-export const ticketStatusSummaryQuerySchema = z.object({
-  filterId: z.string().default("4"),
-  bucket: z.string().min(1),
-});
+export const ticketStatusSummaryQuerySchema = z
+  .object({
+    filterId: z.string().default("4"),
+    bucket: z.string().min(1).optional(),
+    scope: z.enum(["all", "mine"]).default("all"),
+  })
+  .superRefine((data, ctx) => {
+    if (!data.bucket) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "bucket is required",
+        path: ["bucket"],
+      });
+    }
+  });

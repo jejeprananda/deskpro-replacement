@@ -13,8 +13,10 @@ export async function GET(request: Request) {
     const query = ticketListQuerySchema.parse({
       filterId: searchParams.get("filterId") ?? undefined,
       bucket: searchParams.get("bucket") ?? undefined,
+      scope: searchParams.get("scope") ?? undefined,
       offset: searchParams.get("offset") ?? undefined,
       limit: searchParams.get("limit") ?? undefined,
+      waitingSort: searchParams.get("waitingSort") ?? undefined,
     });
 
     const data = await fetchTicketList(query);

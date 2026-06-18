@@ -25,6 +25,11 @@ export function getDeskproTicketFqlGroupedUrl(): string {
   return `${getDeskproBaseUrl()}/graphql/TicketFqlGrouped`;
 }
 
+/** POST .../agent-api/graphql/SearchAppTickets */
+export function getDeskproSearchAppTicketsPath(): string {
+  return "/graphql/SearchAppTickets";
+}
+
 /** POST .../agent-api/graphql/AgentForClientSearch */
 export function getDeskproAgentForClientSearchUrl(): string {
   return `${getDeskproBaseUrl()}/graphql/AgentForClientSearch`;

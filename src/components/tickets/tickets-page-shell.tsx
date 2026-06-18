@@ -1,53 +1,32 @@
 "use client";
 
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useCallback, useState } from "react";
 import { MassActionsPanel } from "@/components/tickets/mass-actions-panel";
-import { TicketsFilterLayout } from "@/components/tickets/tickets-filter-layout";
 import { TicketListPanel } from "@/components/tickets/ticket-list-panel";
+import { TicketSearchPanel } from "@/components/tickets/ticket-search-panel";
 import { TicketSummaryCards } from "@/components/tickets/ticket-summary-cards";
+import { TicketsFilterLayout } from "@/components/tickets/tickets-filter-layout";
 import { TicketsPageHeader } from "@/components/tickets/tickets-page-header";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useMassActionSelection } from "@/hooks/useMassActionSelection";
 import { useTicketFilters } from "@/hooks/useTicketFilters";
 import { useTicketList } from "@/hooks/useTicketList";
 import { useTicketStatusSummary } from "@/hooks/useTicketStatusSummary";
 import { deriveStatusSummaryFromTickets } from "@/types/ticket-status-summary";
-import type { TicketListItem } from "@/types/ticket-list";
 
-function filterTicketsBySearch(
-  tickets: TicketListItem[],
-  query: string,
-): TicketListItem[] {
-  const normalizedQuery = query.trim().toLowerCase();
-  if (!normalizedQuery) {
-    return tickets;
-  }
-
-  return tickets.filter((ticket) => {
-    const haystack = [
-      ticket.ref,
-      ticket.subject,
-      ticket.assignedAgent,
-      ticket.person?.name,
-      ticket.person?.email,
-    ]
-      .filter(Boolean)
-      .join(" ")
-      .toLowerCase();
-
-    return haystack.includes(normalizedQuery);
-  });
-}
-
-function TicketsPageInner({ searchQuery }: { searchQuery: string }) {
+function TicketsPageInner() {
   const {
     filterId,
     bucket,
+    scope,
     offset,
     limit,
+    waitingSort,
     selectedBucketLabel,
     buildTicketDetailHref,
     handlePageChange,
     handleLimitChange,
+    handleWaitingSortChange,
   } = useTicketFilters();
 
   const massActionSelection = useMassActionSelection();
@@ -55,37 +34,27 @@ function TicketsPageInner({ searchQuery }: { searchQuery: string }) {
   const ticketListQuery = useTicketList({
     filterId,
     bucket,
+    scope,
     offset,
     limit,
+    waitingSort,
   });
 
   const statusSummaryQuery = useTicketStatusSummary({
     filterId,
     bucket,
+    scope,
   });
 
-  const tickets = useMemo(
-    () => ticketListQuery.data?.tickets ?? [],
-    [ticketListQuery.data?.tickets],
-  );
+  const tickets = ticketListQuery.data?.tickets ?? [];
   const totalCount = ticketListQuery.data?.totalCount ?? 0;
-  const filteredTickets = useMemo(
-    () => filterTicketsBySearch(tickets, searchQuery),
-    [searchQuery, tickets],
-  );
 
-  const summary = useMemo(() => {
-    if (statusSummaryQuery.data) {
-      return {
+  const summary = statusSummaryQuery.data
+    ? {
         ...statusSummaryQuery.data,
         total: totalCount || statusSummaryQuery.data.total,
-      };
-    }
-
-    return deriveStatusSummaryFromTickets(tickets, totalCount);
-  }, [statusSummaryQuery.data, tickets, totalCount]);
-
-  const isSearchActive = searchQuery.trim().length > 0;
+      }
+    : deriveStatusSummaryFromTickets(tickets, totalCount);
 
   return (
     <div className="flex items-start gap-4">
@@ -103,10 +72,10 @@ function TicketsPageInner({ searchQuery }: { searchQuery: string }) {
         ) : null}
 
         <TicketListPanel
-          tickets={filteredTickets}
-          totalCount={isSearchActive ? filteredTickets.length : totalCount}
-          offset={isSearchActive ? 0 : (ticketListQuery.data?.offset ?? offset)}
-          limit={isSearchActive ? Math.max(filteredTickets.length, 1) : limit}
+          tickets={tickets}
+          totalCount={totalCount}
+          offset={ticketListQuery.data?.offset ?? offset}
+          limit={limit}
           selectedBucketLabel={selectedBucketLabel}
           selectedIds={massActionSelection.selectedTicketIds}
           isFetching={ticketListQuery.isFetching}
@@ -118,6 +87,8 @@ function TicketsPageInner({ searchQuery }: { searchQuery: string }) {
           onToggleAll={massActionSelection.toggleAll}
           onPageChange={handlePageChange}
           onLimitChange={handleLimitChange}
+          waitingSort={waitingSort}
+          onWaitingSortChange={handleWaitingSortChange}
         />
       </div>
 
@@ -130,14 +101,45 @@ function TicketsPageInner({ searchQuery }: { searchQuery: string }) {
 
 function TicketsPageContent() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
+  const debouncedSearch = useDebouncedValue(searchQuery, 300);
+  const { buildTicketDetailHref } = useTicketFilters();
+
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchQuery(value);
+    if (value.trim().length > 0) {
+      setSearchOpen(true);
+    }
+  }, []);
+
+  const handleSearchFocus = useCallback(() => {
+    setSearchOpen(true);
+  }, []);
+
+  const handleSearchClose = useCallback(() => {
+    setSearchOpen(false);
+    setSearchQuery("");
+  }, []);
 
   return (
-    <TicketsFilterLayout
-      searchValue={searchQuery}
-      onSearchChange={setSearchQuery}
-    >
-      <TicketsPageInner searchQuery={searchQuery} />
-    </TicketsFilterLayout>
+    <>
+      <TicketsFilterLayout
+        searchValue={searchQuery}
+        onSearchChange={handleSearchChange}
+        onSearchFocus={handleSearchFocus}
+      >
+        <TicketsPageInner />
+      </TicketsFilterLayout>
+
+      <TicketSearchPanel
+        open={searchOpen}
+        searchTerm={searchQuery}
+        debouncedTerm={debouncedSearch}
+        onSearchChange={handleSearchChange}
+        onClose={handleSearchClose}
+        buildTicketHref={buildTicketDetailHref}
+      />
+    </>
   );
 }
 

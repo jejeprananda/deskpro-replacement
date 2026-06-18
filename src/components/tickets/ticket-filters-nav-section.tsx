@@ -3,20 +3,60 @@
 import { useUiStore } from "@/stores/ui.store";
 import { TicketFilterSidebar } from "@/components/tickets/ticket-filter-sidebar";
 import type { DateUserWaitingBucketItem } from "@/types/ticket-filter-count";
+import type { TicketScope } from "@/types/ticket-list";
 
 interface TicketFiltersNavSectionProps {
   buckets: DateUserWaitingBucketItem[];
   selectedBucket: string | null;
   onSelectBucket: (bucket: string) => void;
+  scope: TicketScope;
+  onScopeChange: (scope: TicketScope) => void;
   isLoading?: boolean;
-  remainingTicketCount?: number | null;
+  ticketCount?: number | null;
   errorMessage?: string | null;
 }
 
-function RemainingTicketsLabel({
+function ScopeTabs({
+  scope,
+  onScopeChange,
+}: {
+  scope: TicketScope;
+  onScopeChange: (scope: TicketScope) => void;
+}) {
+  return (
+    <div className="flex gap-1 px-3 pt-3">
+      <button
+        type="button"
+        onClick={() => onScopeChange("all")}
+        className={`flex-1 rounded-md px-2 py-1.5 text-xs font-semibold transition-colors ${
+          scope === "all"
+            ? "bg-blue-50 text-blue-700"
+            : "text-muted hover:bg-surface-muted hover:text-foreground"
+        }`}
+      >
+        All
+      </button>
+      <button
+        type="button"
+        onClick={() => onScopeChange("mine")}
+        className={`flex-1 rounded-md px-2 py-1.5 text-xs font-semibold transition-colors ${
+          scope === "mine"
+            ? "bg-blue-50 text-blue-700"
+            : "text-muted hover:bg-surface-muted hover:text-foreground"
+        }`}
+      >
+        My Ticket
+      </button>
+    </div>
+  );
+}
+
+function TicketCountLabel({
+  scope,
   count,
   isLoading,
 }: {
+  scope: TicketScope;
   count: number | null | undefined;
   isLoading: boolean;
 }) {
@@ -37,7 +77,7 @@ function RemainingTicketsLabel({
 
   return (
     <p className={labelClassName}>
-      {count} tiket tersisa
+      {scope === "mine" ? `${count} tiket saya` : `${count} tiket tersisa`}
     </p>
   );
 }
@@ -46,8 +86,10 @@ export function TicketFiltersNavSection({
   buckets,
   selectedBucket,
   onSelectBucket,
+  scope,
+  onScopeChange,
   isLoading = false,
-  remainingTicketCount = null,
+  ticketCount = null,
   errorMessage = null,
 }: TicketFiltersNavSectionProps) {
   const sidebarOpen = useUiStore((state) => state.sidebarOpen);
@@ -69,8 +111,10 @@ export function TicketFiltersNavSection({
 
   if (!sidebarOpen) {
     const collapsedTitle =
-      remainingTicketCount != null
-        ? `${remainingTicketCount} tiket tersisa`
+      ticketCount != null
+        ? scope === "mine"
+          ? `${ticketCount} tiket saya`
+          : `${ticketCount} tiket tersisa`
         : "Show ticket filters";
 
     return (
@@ -85,9 +129,9 @@ export function TicketFiltersNavSection({
               : "text-muted hover:bg-surface-muted"
           }`}
         >
-          <span>F</span>
-          {remainingTicketCount != null ? (
-            <span className="mt-1 tabular-nums">{remainingTicketCount}</span>
+          <span>{scope === "mine" ? "M" : "F"}</span>
+          {ticketCount != null ? (
+            <span className="mt-1 tabular-nums">{ticketCount}</span>
           ) : selectedBucketItem ? (
             <span className="mt-1 tabular-nums">{selectedBucketItem.count}</span>
           ) : null}
@@ -98,8 +142,11 @@ export function TicketFiltersNavSection({
 
   return (
     <div className="flex h-full flex-col">
-      <RemainingTicketsLabel
-        count={remainingTicketCount}
+      <ScopeTabs scope={scope} onScopeChange={onScopeChange} />
+
+      <TicketCountLabel
+        scope={scope}
+        count={ticketCount}
         isLoading={isLoading}
       />
 

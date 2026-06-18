@@ -71,6 +71,7 @@ export type TicketListItem = {
   urgency: number;
   dateCreated: string | null;
   dateUserWaiting: string | null;
+  dateStatus?: string | null;
   person: { name: string; email: string } | null;
   personId: string | null;
   agentId: string | null;
@@ -199,9 +200,29 @@ export function normalizeTicketListResponse(
   };
 }
 
-export const ticketListQuerySchema = z.object({
-  filterId: z.string().default("4"),
-  bucket: z.string().min(1),
-  offset: z.coerce.number().int().min(0).default(0),
-  limit: z.coerce.number().int().min(1).max(100).default(58),
-});
+export const waitingSortSchema = z.enum(["asc", "desc"]);
+
+export type WaitingSort = z.infer<typeof waitingSortSchema>;
+
+export const ticketScopeSchema = z.enum(["all", "mine"]);
+
+export type TicketScope = z.infer<typeof ticketScopeSchema>;
+
+export const ticketListQuerySchema = z
+  .object({
+    filterId: z.string().default("4"),
+    bucket: z.string().min(1).optional(),
+    scope: ticketScopeSchema.default("all"),
+    offset: z.coerce.number().int().min(0).default(0),
+    limit: z.coerce.number().int().min(1).max(100).default(58),
+    waitingSort: waitingSortSchema.optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (!data.bucket) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "bucket is required",
+        path: ["bucket"],
+      });
+    }
+  });

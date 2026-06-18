@@ -26,6 +26,7 @@ interface AppShellProps {
   sidebarExtra?: React.ReactNode;
   searchValue?: string;
   onSearchChange?: (value: string) => void;
+  onSearchFocus?: () => void;
   searchPlaceholder?: string;
 }
 
@@ -34,6 +35,7 @@ export function AppShell({
   sidebarExtra,
   searchValue,
   onSearchChange,
+  onSearchFocus,
   searchPlaceholder,
 }: AppShellProps) {
   const pathname = usePathname();
@@ -98,6 +100,7 @@ export function AppShell({
         <PageTopBar
           searchValue={searchValue}
           onSearchChange={onSearchChange}
+          onSearchFocus={onSearchFocus}
           searchPlaceholder={searchPlaceholder}
         />
         <div className="min-h-0 flex-1 overflow-y-auto p-6">{children}</div>

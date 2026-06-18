@@ -8,6 +8,7 @@ import {
   pickDefaultBucketWithTickets,
 } from "@/lib/ticket-filter-labels";
 import { useTicketFilterCounts } from "@/hooks/useTicketFilterCounts";
+import type { TicketScope, WaitingSort } from "@/types/ticket-list";
 
 const DEFAULT_LIMIT = 10;
 
@@ -22,8 +23,15 @@ export function useTicketFilters() {
   const bucket = searchParams.get("bucket");
   const offset = Number(searchParams.get("offset") ?? "0");
   const limit = Number(searchParams.get("limit") ?? String(DEFAULT_LIMIT));
+  const waitingSortParam = searchParams.get("waitingSort");
+  const waitingSort: WaitingSort | null =
+    waitingSortParam === "asc" || waitingSortParam === "desc"
+      ? waitingSortParam
+      : null;
+  const scopeParam = searchParams.get("scope");
+  const scope: TicketScope = scopeParam === "mine" ? "mine" : "all";
 
-  const filterCountsQuery = useTicketFilterCounts();
+  const filterCountsQuery = useTicketFilterCounts({ scope });
 
   const buckets = useMemo(
     () => filterCountsQuery.data?.dateUserWaiting.buckets ?? [],
@@ -35,8 +43,15 @@ export function useTicketFilters() {
       return null;
     }
 
-    return buckets.find((item) => item.value === bucket)?.label ?? bucket;
-  }, [bucket, buckets]);
+    const bucketLabel =
+      buckets.find((item) => item.value === bucket)?.label ?? bucket;
+
+    if (scope === "mine") {
+      return `My Ticket · ${bucketLabel}`;
+    }
+
+    return bucketLabel;
+  }, [bucket, buckets, scope]);
 
   const updateSearchParams = useCallback(
     (updates: Record<string, string | null>, nextPathname = pathname) => {
@@ -92,10 +107,16 @@ export function useTicketFilters() {
       if (limit !== DEFAULT_LIMIT) {
         params.set("limit", String(limit));
       }
+      if (waitingSort) {
+        params.set("waitingSort", waitingSort);
+      }
+      if (scope === "mine") {
+        params.set("scope", "mine");
+      }
       const query = params.toString();
       return query ? `/tickets?${query}` : "/tickets";
     },
-    [bucket, filterId, limit, offset],
+    [bucket, filterId, limit, offset, scope, waitingSort],
   );
 
   const returnToTicketsList = useCallback(
@@ -137,6 +158,12 @@ export function useTicketFilters() {
       if (limit !== DEFAULT_LIMIT) {
         params.set("limit", String(limit));
       }
+      if (waitingSort) {
+        params.set("waitingSort", waitingSort);
+      }
+      if (scope === "mine") {
+        params.set("scope", "mine");
+      }
       if (ticket.personId) {
         params.set("ownerId", ticket.personId);
       }
@@ -155,8 +182,39 @@ export function useTicketFilters() {
       }
       return `/tickets/${ticket.id}?${params.toString()}`;
     },
-    [bucket, filterId, limit, offset],
+    [bucket, filterId, limit, offset, scope, waitingSort],
   );
+
+  const handleScopeChange = useCallback(
+    (nextScope: TicketScope) => {
+      const effectiveBucket =
+        bucket ?? pickDefaultBucketWithTickets(buckets);
+
+      if (nextScope === "mine") {
+        updateSearchParams({
+          scope: "mine",
+          bucket: effectiveBucket,
+          offset: "0",
+        });
+        return;
+      }
+
+      updateSearchParams({
+        scope: null,
+        bucket: effectiveBucket,
+        offset: "0",
+      });
+    },
+    [bucket, buckets, updateSearchParams],
+  );
+
+  const handleWaitingSortChange = useCallback(() => {
+    const nextSort: WaitingSort = waitingSort === "desc" ? "asc" : "desc";
+    updateSearchParams({
+      waitingSort: nextSort,
+      offset: "0",
+    });
+  }, [updateSearchParams, waitingSort]);
 
   const handlePreviousPage = useCallback(() => {
     const nextOffset = Math.max(0, offset - limit);
@@ -207,8 +265,10 @@ export function useTicketFilters() {
   return {
     filterId,
     bucket,
+    scope,
     offset: Number.isFinite(offset) ? offset : 0,
     limit: Number.isFinite(limit) ? limit : DEFAULT_LIMIT,
+    waitingSort,
     buckets,
     selectedBucketLabel,
     filterCountsQuery,
@@ -217,6 +277,8 @@ export function useTicketFilters() {
     handleNextPage,
     handlePageChange,
     handleLimitChange,
+    handleWaitingSortChange,
+    handleScopeChange,
     buildTicketsListHref,
     buildTicketDetailHref,
     returnToTicketsList,

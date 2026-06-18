@@ -4,12 +4,18 @@ import {
   resolveAgentNames,
 } from "@/services/agent-directory.service";
 import { DeskproClient } from "@/lib/deskpro-client";
-import { getBucketFql, isDateUserWaitingBucket } from "@/lib/ticket-filter-labels";
+import {
+  buildMyTicketBucketFql,
+  getBucketFql,
+  isDateUserWaitingBucket,
+} from "@/lib/ticket-filter-labels";
+import { getSession } from "@/lib/session";
 import { DeskproTimeoutError, UnauthorizedError } from "@/lib/errors";
 import {
   normalizeTicketListResponse,
   shouldEnrichAssignedAgent,
   type TicketListResponse,
+  type TicketScope,
 } from "@/types/ticket-list";
 
 const TICKET_FQL_GROUPED_HASH =
@@ -17,9 +23,11 @@ const TICKET_FQL_GROUPED_HASH =
 
 export type FetchTicketListParams = {
   filterId: string;
-  bucket: string;
+  bucket?: string;
+  scope?: TicketScope;
   offset: number;
   limit: number;
+  waitingSort?: "asc" | "desc";
 };
 
 export class InvalidTicketBucketError extends Error {
@@ -34,12 +42,20 @@ function buildTicketFqlGroupedPayload(params: {
   fql: string;
   offset: number;
   limit: number;
+  waitingSort?: "asc" | "desc";
 }) {
+  const orderBy = params.waitingSort
+    ? {
+        fieldId: "ticket.date_user_waiting",
+        order: params.waitingSort.toUpperCase() as "ASC" | "DESC",
+      }
+    : { fieldId: "ticket.id", order: "DESC" as const };
+
   return {
     operationName: "TicketFqlGrouped",
     variables: {
       groupBy: { fieldId: "@none", order: "ASC" },
-      orderBy: { fieldId: "ticket.id", order: "DESC" },
+      orderBy,
       limit: params.limit,
       offset: params.offset,
       fql: params.fql,
@@ -60,15 +76,28 @@ function buildTicketFqlGroupedPayload(params: {
 export async function fetchTicketList(
   params: FetchTicketListParams,
 ): Promise<TicketListResponse> {
-  if (!isDateUserWaitingBucket(params.bucket)) {
-    throw new InvalidTicketBucketError(params.bucket);
+  if (!params.bucket || !isDateUserWaitingBucket(params.bucket)) {
+    throw new InvalidTicketBucketError(params.bucket ?? "");
+  }
+
+  let fql: string;
+
+  if (params.scope === "mine") {
+    const session = await getSession();
+    if (!session.authenticated || !session.agentId) {
+      throw new UnauthorizedError("Agent session required");
+    }
+    fql = buildMyTicketBucketFql(params.bucket, session.agentId);
+  } else {
+    fql = getBucketFql(params.bucket);
   }
 
   const payload = buildTicketFqlGroupedPayload({
     filterId: params.filterId,
-    fql: getBucketFql(params.bucket),
+    fql,
     offset: params.offset,
     limit: params.limit,
+    waitingSort: params.waitingSort,
   });
 
   try {

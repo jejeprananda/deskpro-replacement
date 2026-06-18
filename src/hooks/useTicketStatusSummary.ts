@@ -4,9 +4,13 @@ import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import type { TicketStatusSummaryResponse } from "@/types/ticket-status-summary";
 
+import type { TicketScope } from "@/types/ticket-list";
+
 export type TicketStatusSummaryQueryParams = {
   filterId: string;
   bucket: string | null;
+  scope: TicketScope;
+  enabled?: boolean;
 };
 
 async function fetchTicketStatusSummary(
@@ -18,6 +22,7 @@ async function fetchTicketStatusSummary(
       params: {
         filterId: params.filterId,
         bucket: params.bucket,
+        scope: params.scope === "mine" ? "mine" : undefined,
       },
     },
   );
@@ -28,7 +33,7 @@ export function useTicketStatusSummary(params: TicketStatusSummaryQueryParams) {
   return useQuery({
     queryKey: ["tickets", "status-summary", params],
     queryFn: () => fetchTicketStatusSummary(params),
-    enabled: Boolean(params.bucket),
+    enabled: (params.enabled ?? true) && Boolean(params.bucket),
     retry: false,
   });
 }

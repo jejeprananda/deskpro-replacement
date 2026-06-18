@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { ArrowDown, ArrowUp } from "lucide-react";
 import { PaginationFooter } from "@/components/ui/pagination-footer";
 import { RowActionsMenu } from "@/components/ui/row-actions-menu";
 import { StatusBadge } from "@/components/ui/status-badge";
-import type { TicketListItem } from "@/types/ticket-list";
+import { TicketRefCell } from "@/components/tickets/ticket-ref-cell";
+import type { TicketListItem, WaitingSort } from "@/types/ticket-list";
 
 interface TicketListPanelProps {
   tickets: TicketListItem[];
@@ -20,6 +22,8 @@ interface TicketListPanelProps {
   onToggleAll?: (ticketIds: string[]) => void;
   onPageChange: (page: number) => void;
   onLimitChange: (limit: number) => void;
+  waitingSort?: WaitingSort | null;
+  onWaitingSortChange?: () => void;
 }
 
 function formatDate(value: string | null): string {
@@ -65,6 +69,8 @@ export function TicketListPanel({
   onToggleAll,
   onPageChange,
   onLimitChange,
+  waitingSort = null,
+  onWaitingSortChange,
 }: TicketListPanelProps) {
   const ticketIds = tickets.map((ticket) => ticket.id);
   const selectedCount = ticketIds.filter((id) => selectedIds?.has(id)).length;
@@ -133,7 +139,27 @@ export function TicketListPanel({
                   <th className="px-4 py-3 font-medium">Requester</th>
                   <th className="px-4 py-3 font-medium">Assigned Agent</th>
                   <th className="px-4 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3 font-medium">Waiting</th>
+                  <th className="px-4 py-3 font-medium">
+                    <button
+                      type="button"
+                      onClick={onWaitingSortChange}
+                      className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-muted transition-colors hover:text-foreground"
+                      aria-label={
+                        waitingSort === "asc"
+                          ? "Sort waiting ascending, click for descending"
+                          : waitingSort === "desc"
+                            ? "Sort waiting descending, click for ascending"
+                            : "Sort by waiting, click for descending"
+                      }
+                    >
+                      Waiting
+                      {waitingSort === "asc" ? (
+                        <ArrowUp className="h-3.5 w-3.5" aria-hidden />
+                      ) : waitingSort === "desc" ? (
+                        <ArrowDown className="h-3.5 w-3.5" aria-hidden />
+                      ) : null}
+                    </button>
+                  </th>
                   <th className="px-4 py-3 font-medium">SLA</th>
                   <th className="px-4 py-3 font-medium">
                     <span className="sr-only">Actions</span>
@@ -159,18 +185,17 @@ export function TicketListPanel({
                             type="checkbox"
                             checked={isSelected}
                             onChange={() => onToggleTicket?.(ticket.id)}
-                            aria-label={`Select ticket ${ticket.ref}`}
+                            aria-label={`Select ticket ${ticket.id}`}
                             className="h-4 w-4 rounded border-border text-blue-600 focus:ring-blue-500"
                           />
                         </td>
                       ) : null}
                       <td className="px-4 py-4 align-top">
-                        <Link
+                        <TicketRefCell
                           href={href}
-                          className="font-semibold text-foreground hover:underline"
-                        >
-                          {ticket.ref}
-                        </Link>
+                          ticketId={ticket.id}
+                          ticketRef={ticket.ref}
+                        />
                       </td>
                       <td className="max-w-md px-4 py-4 align-top">
                         <Link

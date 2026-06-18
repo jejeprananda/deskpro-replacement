@@ -2,13 +2,16 @@
 
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
-import type { TicketListResponse } from "@/types/ticket-list";
+import type { TicketListResponse, TicketScope, WaitingSort } from "@/types/ticket-list";
 
 export type TicketListQueryParams = {
   filterId: string;
   bucket: string | null;
+  scope: TicketScope;
   offset: number;
   limit: number;
+  waitingSort: WaitingSort | null;
+  enabled?: boolean;
 };
 
 async function fetchTicketList(
@@ -18,8 +21,10 @@ async function fetchTicketList(
     params: {
       filterId: params.filterId,
       bucket: params.bucket,
+      scope: params.scope === "mine" ? "mine" : undefined,
       offset: params.offset,
       limit: params.limit,
+      ...(params.waitingSort ? { waitingSort: params.waitingSort } : {}),
     },
   });
   return data;
@@ -29,7 +34,7 @@ export function useTicketList(params: TicketListQueryParams) {
   return useQuery({
     queryKey: ["tickets", "list", params],
     queryFn: () => fetchTicketList(params),
-    enabled: Boolean(params.bucket),
+    enabled: (params.enabled ?? true) && Boolean(params.bucket),
     placeholderData: (previousData, previousQuery) => {
       const prev = previousQuery?.queryKey[2] as
         | TicketListQueryParams
@@ -37,7 +42,8 @@ export function useTicketList(params: TicketListQueryParams) {
       if (
         prev &&
         prev.filterId === params.filterId &&
-        prev.bucket === params.bucket
+        prev.bucket === params.bucket &&
+        prev.scope === params.scope
       ) {
         return previousData;
       }

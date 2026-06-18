@@ -1,19 +1,26 @@
 import axios from "axios";
 import { DeskproClient } from "@/lib/deskpro-client";
-import { getBucketFql, isDateUserWaitingBucket } from "@/lib/ticket-filter-labels";
+import {
+  buildMyTicketBucketFql,
+  getBucketFql,
+  isDateUserWaitingBucket,
+} from "@/lib/ticket-filter-labels";
+import { getSession } from "@/lib/session";
 import { DeskproTimeoutError, UnauthorizedError } from "@/lib/errors";
 import {
   normalizeTicketStatusSummary,
   type TicketStatusSummary,
 } from "@/types/ticket-status-summary";
 import { InvalidTicketBucketError } from "@/services/ticket-list.service";
+import type { TicketScope } from "@/types/ticket-list";
 
 const TICKET_FILTER_COUNT_HASH =
   "3703cb91e14aaae5341e5ebb9aa09f95706a456a61e406b4528d3299ca04c71b";
 
 export type FetchTicketStatusSummaryParams = {
   filterId: string;
-  bucket: string;
+  bucket?: string;
+  scope?: TicketScope;
 };
 
 function buildStatusSummaryPayload(params: {
@@ -39,15 +46,27 @@ function buildStatusSummaryPayload(params: {
 export async function fetchTicketStatusSummary(
   params: FetchTicketStatusSummaryParams,
 ): Promise<TicketStatusSummary> {
-  if (!isDateUserWaitingBucket(params.bucket)) {
-    throw new InvalidTicketBucketError(params.bucket);
+  if (!params.bucket || !isDateUserWaitingBucket(params.bucket)) {
+    throw new InvalidTicketBucketError(params.bucket ?? "");
+  }
+
+  let fql: string;
+
+  if (params.scope === "mine") {
+    const session = await getSession();
+    if (!session.authenticated || !session.agentId) {
+      throw new UnauthorizedError("Agent session required");
+    }
+    fql = buildMyTicketBucketFql(params.bucket, session.agentId);
+  } else {
+    fql = getBucketFql(params.bucket);
   }
 
   try {
     const client = await DeskproClient.fromSession();
     const payload = buildStatusSummaryPayload({
       filterId: params.filterId,
-      fql: getBucketFql(params.bucket),
+      fql,
     });
     const data = await client.post<unknown>("/graphql/TicketFilterCount", payload);
 

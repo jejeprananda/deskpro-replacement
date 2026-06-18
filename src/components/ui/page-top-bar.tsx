@@ -1,17 +1,19 @@
 "use client";
 
-import { Bell, Moon, Search, Sun } from "lucide-react";
+import { Bell, Moon, Search, Sun, X } from "lucide-react";
 import { useThemeStore } from "@/stores/theme.store";
 
 interface PageTopBarProps {
   searchValue?: string;
   onSearchChange?: (value: string) => void;
+  onSearchFocus?: () => void;
   searchPlaceholder?: string;
 }
 
 export function PageTopBar({
   searchValue = "",
   onSearchChange,
+  onSearchFocus,
   searchPlaceholder = "Search tickets...",
 }: PageTopBarProps) {
   const searchEnabled = onSearchChange != null;
@@ -27,10 +29,21 @@ export function PageTopBar({
           type="search"
           value={searchValue}
           onChange={(event) => onSearchChange?.(event.target.value)}
+          onFocus={onSearchFocus}
           placeholder={searchPlaceholder}
           disabled={!searchEnabled}
-          className="w-full rounded-lg border border-border bg-surface-muted py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-muted focus:border-blue-500 focus:bg-surface focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+          className="w-full rounded-lg border border-border bg-surface-muted py-2 pl-9 pr-9 text-sm text-foreground placeholder:text-muted focus:border-blue-500 focus:bg-surface focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:opacity-60"
         />
+        {searchEnabled && searchValue ? (
+          <button
+            type="button"
+            onClick={() => onSearchChange?.("")}
+            aria-label="Clear search"
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted hover:bg-surface hover:text-foreground"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        ) : null}
       </div>
 
       <button

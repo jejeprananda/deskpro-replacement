@@ -76,6 +76,21 @@ export function getBucketFql(bucket: DateUserWaitingBucket): string {
   return DATE_USER_WAITING_FQL[bucket];
 }
 
+export function buildAssignedAgentFql(agentId: string): string {
+  return `ticket.agent = ${agentId}`;
+}
+
+export function combineFql(...parts: string[]): string {
+  return parts.map((part) => `(${part})`).join(" AND ");
+}
+
+export function buildMyTicketBucketFql(
+  bucket: DateUserWaitingBucket,
+  agentId: string,
+): string {
+  return combineFql(getBucketFql(bucket), buildAssignedAgentFql(agentId));
+}
+
 export function sortDateUserWaitingBuckets<
   T extends { value: string; count: number },
 >(buckets: T[]): T[] {

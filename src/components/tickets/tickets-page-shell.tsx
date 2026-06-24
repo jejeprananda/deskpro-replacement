@@ -1,17 +1,18 @@
 "use client";
 
-import { Suspense, useCallback, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import { MassActionsPanel } from "@/components/tickets/mass-actions-panel";
 import { TicketListPanel } from "@/components/tickets/ticket-list-panel";
 import { TicketSearchPanel } from "@/components/tickets/ticket-search-panel";
 import { TicketSummaryCards } from "@/components/tickets/ticket-summary-cards";
 import { TicketsFilterLayout } from "@/components/tickets/tickets-filter-layout";
 import { TicketsPageHeader } from "@/components/tickets/tickets-page-header";
+import { useAgentDirectory } from "@/hooks/useAgentDirectory";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useMassActionSelection } from "@/hooks/useMassActionSelection";
 import { useTicketFilters } from "@/hooks/useTicketFilters";
 import { useTicketList } from "@/hooks/useTicketList";
-import { useTicketStatusSummary } from "@/hooks/useTicketStatusSummary";
+import { useTicketListPrefetch } from "@/hooks/useTicketListPrefetch";
 import { deriveStatusSummaryFromTickets } from "@/types/ticket-status-summary";
 
 function TicketsPageInner() {
@@ -30,6 +31,9 @@ function TicketsPageInner() {
   } = useTicketFilters();
 
   const massActionSelection = useMassActionSelection();
+  const prefetchTicketList = useTicketListPrefetch();
+
+  useAgentDirectory(1);
 
   const ticketListQuery = useTicketList({
     filterId,
@@ -40,21 +44,45 @@ function TicketsPageInner() {
     waitingSort,
   });
 
-  const statusSummaryQuery = useTicketStatusSummary({
-    filterId,
-    bucket,
-    scope,
-  });
-
   const tickets = ticketListQuery.data?.tickets ?? [];
   const totalCount = ticketListQuery.data?.totalCount ?? 0;
 
-  const summary = statusSummaryQuery.data
+  const summary = ticketListQuery.data?.statusSummary
     ? {
-        ...statusSummaryQuery.data,
-        total: totalCount || statusSummaryQuery.data.total,
+        ...ticketListQuery.data.statusSummary,
+        total: totalCount || ticketListQuery.data.statusSummary.total,
       }
     : deriveStatusSummaryFromTickets(tickets, totalCount);
+
+  useEffect(() => {
+    if (!bucket || !ticketListQuery.isSuccess || !ticketListQuery.data) {
+      return;
+    }
+
+    const nextOffset = offset + limit;
+    if (nextOffset >= ticketListQuery.data.totalCount) {
+      return;
+    }
+
+    prefetchTicketList({
+      filterId,
+      bucket,
+      scope,
+      offset: nextOffset,
+      limit,
+      waitingSort,
+    });
+  }, [
+    bucket,
+    filterId,
+    limit,
+    offset,
+    prefetchTicketList,
+    scope,
+    ticketListQuery.data,
+    ticketListQuery.isSuccess,
+    waitingSort,
+  ]);
 
   return (
     <div className="flex items-start gap-4">
@@ -64,10 +92,7 @@ function TicketsPageInner() {
         {selectedBucketLabel ? (
           <TicketSummaryCards
             summary={summary}
-            isLoading={
-              ticketListQuery.isFetching &&
-              (statusSummaryQuery.isFetching || !statusSummaryQuery.data)
-            }
+            isLoading={ticketListQuery.isLoading}
           />
         ) : null}
 
@@ -78,6 +103,7 @@ function TicketsPageInner() {
           limit={limit}
           selectedBucketLabel={selectedBucketLabel}
           selectedIds={massActionSelection.selectedTicketIds}
+          isLoading={ticketListQuery.isLoading}
           isFetching={ticketListQuery.isFetching}
           errorMessage={
             ticketListQuery.isError ? "Failed to load tickets." : null

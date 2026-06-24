@@ -6,6 +6,7 @@ interface TicketFilterSidebarProps {
   buckets: DateUserWaitingBucketItem[];
   selectedBucket: string | null;
   onSelectBucket: (bucket: string) => void;
+  onPrefetchBucket?: (bucket: string) => void;
   isLoading?: boolean;
   errorMessage?: string | null;
 }
@@ -14,6 +15,7 @@ export function TicketFilterSidebar({
   buckets,
   selectedBucket,
   onSelectBucket,
+  onPrefetchBucket,
   isLoading = false,
   errorMessage = null,
 }: TicketFilterSidebarProps) {
@@ -50,6 +52,8 @@ export function TicketFilterSidebar({
             <button
               type="button"
               onClick={() => onSelectBucket(bucket.value)}
+              onMouseEnter={() => onPrefetchBucket?.(bucket.value)}
+              onFocus={() => onPrefetchBucket?.(bucket.value)}
               className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors ${
                 isSelected
                   ? "bg-blue-50 font-semibold text-blue-700"

@@ -28,6 +28,6 @@ export function useTicketFilterCounts(params: TicketFilterCountsQueryParams) {
     queryKey: ["tickets", "filter-counts", params],
     queryFn: () => fetchTicketFilterCounts(params),
     staleTime: 60_000,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
   });
 }

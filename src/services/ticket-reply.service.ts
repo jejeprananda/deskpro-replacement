@@ -7,6 +7,7 @@ import {
 import { DeskproTimeoutError, UnauthorizedError } from "@/lib/errors";
 import { getSession } from "@/lib/session";
 import { loadAuth } from "@/services/load-auth.service";
+import { logTicketReplyToSupabase } from "@/services/ticket-reply-log.service";
 import {
   buildReplyHtml,
   normalizeSubmitTicketReplyResponse,
@@ -195,11 +196,28 @@ export async function submitTicketReply(
       throw new Error(`Failed to submit ticket reply: ${message}`);
     }
 
-    return normalizeSubmitTicketReplyResponse(
+    const response = normalizeSubmitTicketReplyResponse(
       data,
       params.statusId,
       params.messageType,
     );
+
+    void logTicketReplyToSupabase({
+      ticketId: params.ticketId,
+      deskproMessageId: response.messageId,
+      messageNumber: response.messageNumber,
+      agentId,
+      agentTeamId,
+      messageType: params.messageType,
+      statusId: params.statusId,
+      messageBody: params.message,
+      attachments,
+      deskproSentAt: response.dateCreated,
+    }).catch((logError) => {
+      console.error("[TicketReplyLog] Non-blocking log failed:", logError);
+    });
+
+    return response;
   } catch (error) {
     if (
       error instanceof UnauthorizedError ||

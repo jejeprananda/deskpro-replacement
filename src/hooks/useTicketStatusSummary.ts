@@ -34,6 +34,8 @@ export function useTicketStatusSummary(params: TicketStatusSummaryQueryParams) {
     queryKey: ["tickets", "status-summary", params],
     queryFn: () => fetchTicketStatusSummary(params),
     enabled: (params.enabled ?? true) && Boolean(params.bucket),
+    staleTime: 3 * 60 * 1000,
+    refetchOnWindowFocus: false,
     retry: false,
   });
 }

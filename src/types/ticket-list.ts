@@ -63,6 +63,8 @@ const ticketFqlGroupedResponseSchema = z.object({
   }),
 });
 
+import type { TicketStatusSummary } from "@/types/ticket-status-summary";
+
 export type TicketListItem = {
   id: string;
   ref: string;
@@ -85,6 +87,7 @@ export type TicketListResponse = {
   tickets: TicketListItem[];
   offset: number;
   limit: number;
+  statusSummary?: TicketStatusSummary;
 };
 
 export type AgentLabelFields = {

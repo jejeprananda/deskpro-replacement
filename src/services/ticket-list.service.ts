@@ -15,6 +15,8 @@ import {
   InvalidTicketBucketError,
   UnauthorizedError,
 } from "@/lib/errors";
+import { buildStatusSummaryPayload } from "@/services/ticket-status-summary.service";
+import { normalizeTicketStatusSummary } from "@/types/ticket-status-summary";
 import {
   normalizeTicketListResponse,
   shouldEnrichAssignedAgent,
@@ -91,26 +93,31 @@ export async function fetchTicketList(
     fql = getBucketFql(params.bucket);
   }
 
-  const payload = buildTicketFqlGroupedPayload({
+  const listPayload = buildTicketFqlGroupedPayload({
     filterId: params.filterId,
     fql,
     offset: params.offset,
     limit: params.limit,
     waitingSort: params.waitingSort,
   });
+  const statusPayload = buildStatusSummaryPayload({
+    filterId: params.filterId,
+    fql,
+  });
 
   try {
     const client = await DeskproClient.fromSession();
-    const data = await client.post<unknown>(
-      "/graphql/TicketFqlGrouped",
-      payload,
-    );
+    const [listData, statusData] = await Promise.all([
+      client.post<unknown>("/graphql/TicketFqlGrouped", listPayload),
+      client.post<unknown>("/graphql/TicketFilterCount", statusPayload),
+    ]);
 
     const response = normalizeTicketListResponse(
-      data,
+      listData,
       params.offset,
       params.limit,
     );
+    const statusSummary = normalizeTicketStatusSummary(statusData);
 
     const agentIds = response.tickets
       .filter(shouldEnrichAssignedAgent)
@@ -118,13 +125,17 @@ export async function fetchTicketList(
       .filter((agentId): agentId is string => agentId != null);
 
     if (agentIds.length === 0) {
-      return response;
+      return {
+        ...response,
+        statusSummary,
+      };
     }
 
     const agentNames = await resolveAgentNames(agentIds);
 
     return {
       ...response,
+      statusSummary,
       tickets: enrichTicketListAgents(response.tickets, agentNames),
     };
   } catch (error) {

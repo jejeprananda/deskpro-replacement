@@ -6,7 +6,7 @@ interface PaginationFooterProps {
   offset: number;
   limit: number;
   totalCount: number;
-  isDisabled?: boolean;
+  isLoading?: boolean;
   onPageChange: (page: number) => void;
   onLimitChange: (limit: number) => void;
 }
@@ -33,7 +33,7 @@ export function PaginationFooter({
   offset,
   limit,
   totalCount,
-  isDisabled = false,
+  isLoading = false,
   onPageChange,
   onLimitChange,
 }: PaginationFooterProps) {
@@ -54,7 +54,7 @@ export function PaginationFooter({
           <button
             type="button"
             onClick={() => onPageChange(currentPage - 1)}
-            disabled={isDisabled || currentPage <= 1}
+            disabled={isLoading || currentPage <= 1}
             className="rounded-md border border-border px-3 py-1.5 text-xs text-foreground disabled:cursor-not-allowed disabled:opacity-50"
           >
             Previous
@@ -65,7 +65,7 @@ export function PaginationFooter({
               key={page}
               type="button"
               onClick={() => onPageChange(page)}
-              disabled={isDisabled}
+              disabled={isLoading}
               className={`min-w-8 rounded-md px-2 py-1.5 text-xs font-medium disabled:cursor-not-allowed disabled:opacity-50 ${
                 page === currentPage
                   ? "bg-blue-600 text-white"
@@ -79,7 +79,7 @@ export function PaginationFooter({
           <button
             type="button"
             onClick={() => onPageChange(currentPage + 1)}
-            disabled={isDisabled || currentPage >= totalPages}
+            disabled={isLoading || currentPage >= totalPages}
             className="rounded-md border border-border px-3 py-1.5 text-xs text-foreground disabled:cursor-not-allowed disabled:opacity-50"
           >
             Next
@@ -89,7 +89,7 @@ export function PaginationFooter({
         <label className="flex items-center gap-2 text-xs text-muted">
           <select
             value={limit}
-            disabled={isDisabled}
+            disabled={isLoading}
             onChange={(event) => onLimitChange(Number(event.target.value))}
             className="rounded-md border border-border bg-surface px-2 py-1.5 text-xs text-foreground disabled:cursor-not-allowed disabled:opacity-50"
           >

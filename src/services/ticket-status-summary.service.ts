@@ -22,7 +22,7 @@ export type FetchTicketStatusSummaryParams = {
   scope?: TicketScope;
 };
 
-function buildStatusSummaryPayload(params: {
+export function buildStatusSummaryPayload(params: {
   filterId: string;
   fql: string;
 }) {

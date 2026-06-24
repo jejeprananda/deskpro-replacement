@@ -7,10 +7,16 @@ import {
   DATE_USER_WAITING_FILTER_ID,
   pickDefaultBucketWithTickets,
 } from "@/lib/ticket-filter-labels";
+import {
+  DEFAULT_TICKET_LIST_LIMIT,
+  isValidTicketListLimit,
+  resolveTicketListLimit,
+  setStoredTicketListLimit,
+} from "@/lib/ticket-list-preferences";
 import { useTicketFilterCounts } from "@/hooks/useTicketFilterCounts";
 import type { TicketScope, WaitingSort } from "@/types/ticket-list";
 
-const DEFAULT_LIMIT = 10;
+const DEFAULT_LIMIT = DEFAULT_TICKET_LIST_LIMIT;
 
 export function useTicketFilters() {
   const router = useRouter();
@@ -22,7 +28,7 @@ export function useTicketFilters() {
     searchParams.get("filterId") ?? DATE_USER_WAITING_FILTER_ID;
   const bucket = searchParams.get("bucket");
   const offset = Number(searchParams.get("offset") ?? "0");
-  const limit = Number(searchParams.get("limit") ?? String(DEFAULT_LIMIT));
+  const limit = resolveTicketListLimit(searchParams.get("limit"));
   const waitingSortParam = searchParams.get("waitingSort");
   const waitingSort: WaitingSort | null =
     waitingSortParam === "asc" || waitingSortParam === "desc"
@@ -125,11 +131,8 @@ export function useTicketFilters() {
       router.push(href);
 
       await Promise.all([
-        queryClient.refetchQueries({ queryKey: ["tickets", "list"] }),
-        queryClient.refetchQueries({ queryKey: ["tickets", "filter-counts"] }),
-        queryClient.refetchQueries({
-          queryKey: ["tickets", "status-summary"],
-        }),
+        queryClient.invalidateQueries({ queryKey: ["tickets", "list"] }),
+        queryClient.invalidateQueries({ queryKey: ["tickets", "filter-counts"] }),
       ]);
     },
     [buildTicketsListHref, queryClient, router],
@@ -235,6 +238,10 @@ export function useTicketFilters() {
 
   const handleLimitChange = useCallback(
     (nextLimit: number) => {
+      if (isValidTicketListLimit(nextLimit)) {
+        setStoredTicketListLimit(nextLimit);
+      }
+
       updateSearchParams({
         limit: String(nextLimit),
         offset: "0",

@@ -1,5 +1,6 @@
 "use client";
 
+import { RefreshCw } from "lucide-react";
 import { useUiStore } from "@/stores/ui.store";
 import { TicketFilterSidebar } from "@/components/tickets/ticket-filter-sidebar";
 import type { DateUserWaitingBucketItem } from "@/types/ticket-filter-count";
@@ -9,9 +10,12 @@ interface TicketFiltersNavSectionProps {
   buckets: DateUserWaitingBucketItem[];
   selectedBucket: string | null;
   onSelectBucket: (bucket: string) => void;
+  onPrefetchBucket?: (bucket: string) => void;
   scope: TicketScope;
   onScopeChange: (scope: TicketScope) => void;
   isLoading?: boolean;
+  isRefreshingCounts?: boolean;
+  onRefreshCounts?: () => void;
   ticketCount?: number | null;
   errorMessage?: string | null;
 }
@@ -86,9 +90,12 @@ export function TicketFiltersNavSection({
   buckets,
   selectedBucket,
   onSelectBucket,
+  onPrefetchBucket,
   scope,
   onScopeChange,
   isLoading = false,
+  isRefreshingCounts = false,
+  onRefreshCounts,
   ticketCount = null,
   errorMessage = null,
 }: TicketFiltersNavSectionProps) {
@@ -150,17 +157,33 @@ export function TicketFiltersNavSection({
         isLoading={isLoading}
       />
 
-      <button
-        type="button"
-        onClick={toggleTicketFiltersOpen}
-        className="flex w-full items-center justify-between px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted hover:bg-surface-muted"
-        aria-expanded={ticketFiltersOpen}
-      >
-        <span>Waiting duration</span>
-        <span className="text-[10px] normal-case tracking-normal text-muted">
+      <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-semibold uppercase tracking-wide text-muted">
+            Waiting duration
+          </span>
+          {onRefreshCounts ? (
+            <button
+              type="button"
+              onClick={onRefreshCounts}
+              aria-label="Refresh filter counts"
+              className={`rounded p-1 text-muted hover:bg-surface-muted hover:text-foreground ${
+                isRefreshingCounts ? "animate-spin" : ""
+              }`}
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+            </button>
+          ) : null}
+        </div>
+        <button
+          type="button"
+          onClick={toggleTicketFiltersOpen}
+          className="text-[10px] font-semibold uppercase tracking-wide text-muted hover:text-foreground"
+          aria-expanded={ticketFiltersOpen}
+        >
           {ticketFiltersOpen ? "Hide" : "Show"}
-        </span>
-      </button>
+        </button>
+      </div>
 
       {ticketFiltersOpen ? (
         <div className="flex-1 overflow-y-auto px-2 pb-3">
@@ -168,6 +191,7 @@ export function TicketFiltersNavSection({
             buckets={buckets}
             selectedBucket={selectedBucket}
             onSelectBucket={onSelectBucket}
+            onPrefetchBucket={onPrefetchBucket}
             isLoading={isLoading}
             errorMessage={errorMessage}
           />

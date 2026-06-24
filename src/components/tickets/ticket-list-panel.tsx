@@ -15,6 +15,7 @@ interface TicketListPanelProps {
   limit: number;
   selectedBucketLabel: string | null;
   selectedIds?: Set<string>;
+  isLoading?: boolean;
   isFetching?: boolean;
   errorMessage?: string | null;
   buildTicketHref: (ticket: TicketListItem) => string;
@@ -62,6 +63,7 @@ export function TicketListPanel({
   limit,
   selectedBucketLabel,
   selectedIds,
+  isLoading = false,
   isFetching = false,
   errorMessage = null,
   buildTicketHref,
@@ -95,7 +97,7 @@ export function TicketListPanel({
         </div>
       ) : null}
 
-      {isFetching && tickets.length === 0 ? (
+      {isLoading && tickets.length === 0 ? (
         <div className="space-y-2 p-4">
           {Array.from({ length: 6 }).map((_, index) => (
             <div
@@ -106,7 +108,7 @@ export function TicketListPanel({
         </div>
       ) : null}
 
-      {!isFetching && tickets.length === 0 ? (
+      {!isLoading && tickets.length === 0 ? (
         <div className="flex flex-1 items-center justify-center p-6">
           <p className="text-sm text-muted">No tickets in this filter.</p>
         </div>
@@ -114,7 +116,11 @@ export function TicketListPanel({
 
       {tickets.length > 0 ? (
         <>
-          <div className="overflow-x-auto">
+          <div
+            className={`overflow-x-auto transition-opacity ${
+              isFetching ? "opacity-60" : "opacity-100"
+            }`}
+          >
             <table className="min-w-full text-left text-sm">
               <thead className="border-b border-border bg-surface-muted text-[11px] uppercase tracking-wide text-muted">
                 <tr>
@@ -257,7 +263,7 @@ export function TicketListPanel({
             offset={offset}
             limit={limit}
             totalCount={totalCount}
-            isDisabled={isFetching}
+            isLoading={isLoading}
             onPageChange={onPageChange}
             onLimitChange={onLimitChange}
           />
